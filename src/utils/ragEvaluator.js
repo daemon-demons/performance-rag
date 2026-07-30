@@ -154,10 +154,10 @@ export function evaluateEmployee(employee) {
   const otherTesters = boolScore(employee.Other_Testers)
   const cont = CONT_MAP[employee.CONT_Status] ?? 1
   const dbd = boolScore(employee.DBD_Bringup)
-  const scws = boolScore(employee.Handled_SC_WS)
-  const sodft = boolScore(employee.Handled_SOD_FT)
+  const scExp = boolScore(employee.SC_Experience)
+  const sod = boolScore(employee.SOD_Handling)
 
-  const Platform_Score = avg([smt, otherTesters, cont, dbd, scws, sodft])
+  const Platform_Score = avg([smt, otherTesters, cont, dbd, scExp, sod])
 
   const product = PRODUCT_MAP[employee.Product_Focus] ?? 5
   const demand = DEMAND_MAP[employee.Client_Demand] ?? 5

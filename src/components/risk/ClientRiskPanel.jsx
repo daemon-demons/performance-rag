@@ -5,7 +5,7 @@ export default function ClientRiskPanel({ clients, spofAlerts }) {
   return (
     <div className="space-y-4">
       {spofAlerts.length > 0 && (
-        <div className="rounded border border-amber-200 bg-amber-50 p-4">
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 shadow-sm">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 shrink-0 text-rag-amber" size={16} />
             <div>
@@ -27,9 +27,9 @@ export default function ClientRiskPanel({ clients, spofAlerts }) {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded border border-slate-200 bg-white">
+      <div className="card-plush overflow-x-auto p-0">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-xs tracking-wide text-slate-500 uppercase">
+          <thead className="bg-slate-50/90 text-xs tracking-wide text-slate-500 uppercase">
             <tr>
               <th className="px-3 py-3 text-left font-normal">Client</th>
               <th className="px-3 py-3 text-left font-normal">Headcount</th>

@@ -58,9 +58,9 @@ export default function DashboardView() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 pb-10 sm:px-6">
       <div>
-          <h2 className="font-display text-xl font-semibold text-slate-900">
-            Dashboard
-          </h2>
+        <h2 className="font-display text-xl font-semibold text-tessolve-navy">
+          Dashboard
+        </h2>
         <p className="text-sm text-slate-500">
           Team health overview{note} · {active.length} active · {kpis.departed}{' '}
           departed
@@ -68,8 +68,10 @@ export default function DashboardView() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <h3 className="mb-2 text-sm text-slate-700">RAG distribution</h3>
+        <div className="card-plush">
+          <h3 className="mb-2 text-sm font-semibold text-slate-700">
+            RAG distribution
+          </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ragBarData}>
@@ -87,8 +89,10 @@ export default function DashboardView() {
           </div>
         </div>
 
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <h3 className="mb-2 text-sm text-slate-700">Average skill scores</h3>
+        <div className="card-plush">
+          <h3 className="mb-2 text-sm font-semibold text-slate-700">
+            Average skill scores
+          </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={scoreBarData} layout="vertical" margin={{ left: 16 }}>
@@ -113,7 +117,9 @@ export default function DashboardView() {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm text-slate-700">Client health & SPOF</h3>
+        <h3 className="mb-3 text-sm font-semibold text-slate-700">
+          Client health & SPOF
+        </h3>
         <ClientRiskPanel
           clients={clientRisk.clients}
           spofAlerts={clientRisk.spofAlerts}

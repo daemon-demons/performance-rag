@@ -5,7 +5,7 @@ import EmployeeSidebar from '../roster/EmployeeSidebar'
 import { buildOrgTree } from '../../utils/orgTree'
 
 export default function OrgChart() {
-  const { orgEmployees, filters } = useApp()
+  const { orgEmployees, filters, reorgPreview, setReorgPreview } = useApp()
 
   const roots = useMemo(() => {
     const tree = buildOrgTree(orgEmployees)
@@ -40,7 +40,7 @@ export default function OrgChart() {
   return (
     <div className="mx-auto max-w-[100vw] px-4 pb-10 sm:px-6">
       <div className="mb-4">
-        <h2 className="font-display text-xl font-semibold text-slate-900">
+        <h2 className="font-display text-xl font-semibold text-tessolve-navy">
           Org Chart
         </h2>
         <p className="text-sm text-slate-500">
@@ -48,7 +48,36 @@ export default function OrgChart() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white p-4 sm:p-8">
+      {reorgPreview && (
+        <div className="animate-fade-up mb-4 rounded-xl border border-tessolve-blue/30 bg-sky-50/90 px-4 py-3 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-tessolve-navy">
+                Reorg RAG preview · {reorgPreview.title}
+              </p>
+              <ul className="mt-1 space-y-0.5 text-xs text-slate-700">
+                {reorgPreview.deltas.map((d) => (
+                  <li key={d.id}>
+                    {d.name}:{' '}
+                    <span className="font-mono">
+                      {d.from} → {d.to}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button
+              type="button"
+              className="text-xs text-slate-500 hover:text-slate-800"
+              onClick={() => setReorgPreview(null)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card-plush overflow-x-auto p-4 sm:p-8">
         {roots.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">
             No employees match the current filters.

@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Download, Cpu, Play } from 'lucide-react'
+import { AlertTriangle, Download, Play, FolderOpen } from 'lucide-react'
 import DropzoneUpload from './DropzoneUpload'
 import {
   validateAndParseCsv,
   validateAndParseCsvText,
 } from '../../utils/csvValidator'
 import { downloadSampleCsv } from '../../utils/sampleCsv'
+import {
+  openCsvWithHandle,
+  supportsFileSystemAccess,
+} from '../../utils/csvPersist'
 import { useApp } from '../../context/AppContext'
 
 const DEMO_SAMPLE_URL = `${import.meta.env.BASE_URL}sample/sample_team_roster.csv`
@@ -17,7 +21,7 @@ export default function WelcomeScreen() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const applyParseResult = (result) => {
+  const applyParseResult = (result, options = {}) => {
     if (!result.ok) {
       setError({
         messages: result.errors,
@@ -25,19 +29,39 @@ export default function WelcomeScreen() {
       })
       return false
     }
-    loadEmployees(result.employees)
+    loadEmployees(result.employees, options)
     navigate('/dashboard')
     return true
   }
 
-  const handleFile = async (file) => {
+  const handleFile = async (file, fileHandle = null) => {
     setLoading(true)
     setError(null)
     try {
-      applyParseResult(await validateAndParseCsv(file))
+      applyParseResult(await validateAndParseCsv(file), { fileHandle })
     } catch (err) {
       setError({
         messages: [err?.message || 'Unexpected error while parsing CSV.'],
+        missingColumns: [],
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOpenLocal = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { file, handle } = await openCsvWithHandle()
+      applyParseResult(await validateAndParseCsv(file), { fileHandle: handle })
+    } catch (err) {
+      if (err?.name === 'AbortError') return
+      setError({
+        messages: [
+          err?.message ||
+            'Could not open local CSV. Try drag-and-drop instead.',
+        ],
         missingColumns: [],
       })
     } finally {
@@ -83,9 +107,11 @@ export default function WelcomeScreen() {
       />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-4 py-12 sm:px-6">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-tessolve-orange to-tessolve-blue shadow-lg">
-            <Cpu className="text-white" size={22} />
+        <div className="mb-8 flex animate-fade-up items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-tessolve-orange to-tessolve-blue shadow-lg shadow-tessolve-orange/30 ring-2 ring-white/10">
+            <span className="font-display text-xs font-bold tracking-wider text-white">
+              RAG
+            </span>
           </div>
           <div>
             <p className="font-display text-sm font-semibold tracking-wide text-tessolve-orange uppercase">
@@ -110,15 +136,26 @@ export default function WelcomeScreen() {
         </p>
 
         <div className="mt-10">
-          <DropzoneUpload onFile={handleFile} disabled={loading} />
+          <DropzoneUpload onFile={(f) => handleFile(f)} disabled={loading} />
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
+          {supportsFileSystemAccess() && (
+            <button
+              type="button"
+              onClick={handleOpenLocal}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-lg border border-tessolve-blue/50 bg-tessolve-blue/20 px-4 py-2.5 text-sm font-semibold text-sky-100 shadow transition hover:bg-tessolve-blue/30 disabled:opacity-60"
+            >
+              <FolderOpen size={16} />
+              Open & link local CSV
+            </button>
+          )}
           <button
             type="button"
             onClick={handleLoadDemo}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-tessolve-orange px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-tessolve-orange-dark disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-tessolve-orange px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-tessolve-orange/25 transition hover:bg-tessolve-orange-dark active:scale-[0.98] disabled:opacity-60"
           >
             <Play size={16} />
             Run demo with sample roster
@@ -179,7 +216,11 @@ export default function WelcomeScreen() {
         )}
 
         <p className="mt-8 text-xs text-slate-400">
-          Demo data: <code className="text-slate-300">sample/sample_team_roster.csv</code>
+          Demo data:{' '}
+          <code className="text-slate-300">sample/sample_team_roster.csv</code>
+          {supportsFileSystemAccess() && (
+            <> · Link a local file to auto-save edits</>
+          )}
         </p>
       </div>
     </div>

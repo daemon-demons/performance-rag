@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react'
-import { X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { X, Pencil, Check, Ban } from 'lucide-react'
 import {
   ResponsiveContainer,
   RadarChart,
@@ -30,8 +30,31 @@ const ROLES = [
   'Staff',
 ]
 
+const PROJECT_TYPES = ['FT', 'WS', 'NPI', 'Sustaining', 'HVM Support', 'Other']
+
 const fieldClass =
-  'w-full rounded border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-800 focus:border-tessolve-blue focus:outline-none'
+  'w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-800 shadow-sm transition focus:border-tessolve-blue focus:outline-none focus:ring-2 focus:ring-tessolve-blue/20'
+
+const EDITABLE_KEYS = [
+  'Role',
+  'Reports_To',
+  'Mentor_Name',
+  'Client',
+  'Project_Type',
+  ...Object.keys(ENUM_COLUMNS),
+  'TML_Scripting',
+  'CS_ES_HVM_Releases',
+  ...BOOLEAN_COLUMNS,
+]
+
+function snapshotEmployee(emp) {
+  const snap = {}
+  for (const key of EDITABLE_KEYS) {
+    snap[key] = emp[key]
+  }
+  snap.isDeparted = Boolean(emp.isDeparted)
+  return snap
+}
 
 function radarAxes(emp) {
   return [
@@ -39,8 +62,8 @@ function radarAxes(emp) {
     { skill: 'Other', value: emp.Other_Testers ? 8 : 0 },
     { skill: 'CONT', value: CONT_MAP[emp.CONT_Status] ?? 0 },
     { skill: 'DBD', value: emp.DBD_Bringup ? 8 : 0 },
-    { skill: 'SC/WS', value: emp.Handled_SC_WS ? 8 : 0 },
-    { skill: 'SOD/FT', value: emp.Handled_SOD_FT ? 8 : 0 },
+    { skill: 'SC', value: emp.SC_Experience ? 8 : 0 },
+    { skill: 'SOD', value: emp.SOD_Handling ? 8 : 0 },
     { skill: 'Product', value: PRODUCT_MAP[emp.Product_Focus] ?? 0 },
     { skill: 'Demand', value: DEMAND_MAP[emp.Client_Demand] ?? 0 },
     { skill: 'Proj', value: emp.Project_Projections_Current ? 8 : 0 },
@@ -50,25 +73,51 @@ function radarAxes(emp) {
   ]
 }
 
+function Fact({ label, value }) {
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-2.5 py-2">
+      <p className="text-[10px] font-medium tracking-wide text-slate-400 uppercase">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm text-slate-800">{value || '—'}</p>
+    </div>
+  )
+}
+
 export default function EmployeeSidebar() {
   const {
     selectedEmployee,
     setSelectedEmployeeId,
-    updateEmployee,
-    reassignReport,
-    toggleDeparted,
+    commitEmployeeUpdate,
     filterOptions,
     employees,
+    persistStatus,
   } = useApp()
+
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    setEditing(false)
+    setDraft(null)
+  }, [selectedEmployee?.id])
 
   useEffect(() => {
     if (!selectedEmployee) return undefined
     const onKey = (e) => {
-      if (e.key === 'Escape') setSelectedEmployeeId(null)
+      if (e.key === 'Escape') {
+        if (editing) {
+          setEditing(false)
+          setDraft(null)
+        } else {
+          setSelectedEmployeeId(null)
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selectedEmployee, setSelectedEmployeeId])
+  }, [selectedEmployee, setSelectedEmployeeId, editing])
 
   const radarData = useMemo(
     () => (selectedEmployee ? radarAxes(selectedEmployee) : []),
@@ -87,18 +136,43 @@ export default function EmployeeSidebar() {
   if (!selectedEmployee) return null
 
   const emp = selectedEmployee
-  const patch = (key, value) => updateEmployee(emp.id, { [key]: value })
+  const setField = (key, value) =>
+    setDraft((prev) => ({ ...(prev || {}), [key]: value }))
+
+  const startEdit = () => {
+    setDraft(snapshotEmployee(emp))
+    setEditing(true)
+  }
+
+  const cancelEdit = () => {
+    setEditing(false)
+    setDraft(null)
+  }
+
+  const saveEdit = async () => {
+    if (!draft) return
+    setSaving(true)
+    try {
+      await commitEmployeeUpdate(emp.id, { ...draft })
+      setEditing(false)
+      setDraft(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const d = editing ? draft : null
 
   return (
     <>
       <button
         type="button"
         aria-label="Close sidebar"
-        className="fixed inset-0 z-40 bg-slate-900/30"
+        className="fixed inset-0 z-40 bg-slate-900/35 backdrop-blur-[1px] transition"
         onClick={() => setSelectedEmployeeId(null)}
       />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-slate-200 bg-white shadow-xl">
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-slate-200/80 bg-white shadow-2xl shadow-slate-900/10">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-4 py-3">
           <div className="min-w-0">
             <h2 className="font-display text-lg font-semibold text-tessolve-navy">
               {emp.Employee_Name}
@@ -106,44 +180,68 @@ export default function EmployeeSidebar() {
             <p className="text-sm text-slate-500">
               {emp.Role} · {emp.Client}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <RagBadge status={emp.ragStatus} />
+              {persistStatus && (
+                <span className="text-[11px] text-slate-400">{persistStatus}</span>
+              )}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setSelectedEmployeeId(null)}
-            className="rounded border border-slate-200 p-1.5 text-slate-500 hover:text-slate-800"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {!editing ? (
+              <button
+                type="button"
+                onClick={startEdit}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-tessolve-navy shadow-sm transition hover:border-tessolve-orange hover:text-tessolve-orange"
+              >
+                <Pencil size={13} />
+                Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={saveEdit}
+                  className="inline-flex items-center gap-1 rounded-lg bg-tessolve-orange px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-tessolve-orange-dark disabled:opacity-60"
+                >
+                  <Check size={13} />
+                  Save
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={cancelEdit}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  <Ban size={13} />
+                  Cancel
+                </button>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelectedEmployeeId(null)}
+              className="rounded-lg border border-slate-200 p-1.5 text-slate-500 transition hover:text-slate-800"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="rounded border border-slate-100 bg-slate-50 px-2 py-2">
-              <p className="text-[10px] text-slate-400 uppercase">Overall</p>
-              <p className="font-mono text-slate-800">{emp.Overall_Score}</p>
-            </div>
-            <div className="rounded border border-slate-100 bg-slate-50 px-2 py-2">
-              <p className="text-[10px] text-slate-400 uppercase">Platform</p>
-              <p className="font-mono text-slate-800">{emp.Platform_Score}</p>
-            </div>
-            <div className="rounded border border-slate-100 bg-slate-50 px-2 py-2">
-              <p className="text-[10px] text-slate-400 uppercase">Delivery</p>
-              <p className="font-mono text-slate-800">{emp.Delivery_Score}</p>
-            </div>
-            <div className="rounded border border-slate-100 bg-slate-50 px-2 py-2">
-              <p className="text-[10px] text-slate-400 uppercase">Depth</p>
-              <p className="font-mono text-slate-800">{emp.Depth_Score}</p>
-            </div>
+            <Fact label="Overall" value={emp.Overall_Score} />
+            <Fact label="Platform" value={emp.Platform_Score} />
+            <Fact label="Delivery" value={emp.Delivery_Score} />
+            <Fact label="Depth" value={emp.Depth_Score} />
           </div>
 
           <div>
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
               Skill profile
             </h3>
-            <div className="h-56 w-full rounded border border-slate-100">
+            <div className="h-56 w-full rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50 shadow-inner">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                   <PolarGrid stroke="#e2e8f0" />
@@ -165,181 +263,234 @@ export default function EmployeeSidebar() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Edit
-            </h3>
+          {!editing ? (
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Profile
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <Fact label="Reports to" value={emp.Reports_To} />
+                <Fact label="Mentor" value={emp.Mentor_Name} />
+                <Fact label="Project type" value={emp.Project_Type} />
+                <Fact label="SMT" value={emp.SMT_Versions_Known} />
+                <Fact label="CONT" value={emp.CONT_Status} />
+                <Fact label="Product" value={emp.Product_Focus} />
+                <Fact label="IP debug" value={emp.IP_Debug_Level} />
+                <Fact label="Demand" value={emp.Client_Demand} />
+                <Fact
+                  label="SC experience"
+                  value={emp.SC_Experience ? 'Yes' : 'No'}
+                />
+                <Fact
+                  label="SOD handling"
+                  value={emp.SOD_Handling ? 'Yes' : 'No'}
+                />
+                <Fact label="TML" value={emp.TML_Scripting} />
+                <Fact label="HVM" value={emp.CS_ES_HVM_Releases} />
+              </div>
+              {emp.failedResponsibilities?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase">
+                    Failed responsibilities
+                  </p>
+                  <ul className="mt-1 list-disc pl-4 text-xs text-rag-red">
+                    {emp.failedResponsibilities.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {emp.isDeparted && (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  Marked departed — attrition cascade applied
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Edit details
+              </h3>
 
-            <label className="block text-xs text-slate-500">
-              Role
-              <select
-                className={`mt-1 ${fieldClass}`}
-                value={emp.Role}
-                onChange={(e) => patch('Role', e.target.value)}
-              >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block text-xs text-slate-500">
-              Reports to
-              <select
-                className={`mt-1 ${fieldClass}`}
-                value={emp.Reports_To || ''}
-                onChange={(e) => {
-                  const v = e.target.value
-                  if (!v) {
-                    patch('Reports_To', '')
-                    return
-                  }
-                  reassignReport(emp.id, v)
-                }}
-              >
-                <option value="">— None —</option>
-                {nameOptions.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block text-xs text-slate-500">
-              Mentor
-              <select
-                className={`mt-1 ${fieldClass}`}
-                value={emp.Mentor_Name || ''}
-                onChange={(e) => patch('Mentor_Name', e.target.value)}
-              >
-                <option value="">— None —</option>
-                {nameOptions.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block text-xs text-slate-500">
-              Client
-              <select
-                className={`mt-1 ${fieldClass}`}
-                value={emp.Client}
-                onChange={(e) => patch('Client', e.target.value)}
-              >
-                {[
-                  ...new Set([
-                    emp.Client,
-                    'Client Q',
-                    'Client A',
-                    'Client G',
-                    ...(filterOptions.clients || []),
-                  ]),
-                ]
-                  .filter(Boolean)
-                  .map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-              </select>
-            </label>
-
-            <label className="block text-xs text-slate-500">
-              Project type
-              <input
-                className={`mt-1 ${fieldClass}`}
-                value={emp.Project_Type || ''}
-                onChange={(e) => patch('Project_Type', e.target.value)}
-              />
-            </label>
-
-            {Object.entries(ENUM_COLUMNS).map(([col, options]) => (
-              <label key={col} className="block text-xs text-slate-500">
-                {col.replace(/_/g, ' ')}
+              <label className="block text-xs text-slate-500">
+                Role
                 <select
                   className={`mt-1 ${fieldClass}`}
-                  value={emp[col]}
-                  onChange={(e) => patch(col, e.target.value)}
+                  value={d.Role}
+                  onChange={(e) => setField('Role', e.target.value)}
                 >
-                  {options.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
+                  {ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
                     </option>
                   ))}
                 </select>
               </label>
-            ))}
 
-            <label className="block text-xs text-slate-500">
-              TML Scripting (0–10)
-              <input
-                type="number"
-                min={0}
-                max={10}
-                className={`mt-1 ${fieldClass}`}
-                value={emp.TML_Scripting ?? 0}
-                onChange={(e) =>
-                  patch('TML_Scripting', Number(e.target.value) || 0)
-                }
-              />
-            </label>
-
-            <label className="block text-xs text-slate-500">
-              CS/ES HVM Releases (0–10)
-              <input
-                type="number"
-                min={0}
-                max={10}
-                className={`mt-1 ${fieldClass}`}
-                value={emp.CS_ES_HVM_Releases ?? 0}
-                onChange={(e) =>
-                  patch('CS_ES_HVM_Releases', Number(e.target.value) || 0)
-                }
-              />
-            </label>
-
-            <div className="space-y-2 rounded border border-slate-100 p-3">
-              {BOOLEAN_COLUMNS.map((col) => (
-                <label
-                  key={col}
-                  className="flex items-center justify-between gap-2 text-xs text-slate-600"
+              <label className="block text-xs text-slate-500">
+                Reports to
+                <select
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.Reports_To || ''}
+                  onChange={(e) => setField('Reports_To', e.target.value)}
                 >
-                  <span>{col.replace(/_/g, ' ')}</span>
+                  <option value="">— None —</option>
+                  {nameOptions.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block text-xs text-slate-500">
+                Mentor
+                <select
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.Mentor_Name || ''}
+                  onChange={(e) => setField('Mentor_Name', e.target.value)}
+                >
+                  <option value="">— None —</option>
+                  {nameOptions.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block text-xs text-slate-500">
+                Client
+                <select
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.Client}
+                  onChange={(e) => setField('Client', e.target.value)}
+                >
+                  {[
+                    ...new Set([
+                      d.Client,
+                      'Client Q',
+                      'Client A',
+                      'Client G',
+                      ...(filterOptions.clients || []),
+                    ]),
+                  ]
+                    .filter(Boolean)
+                    .map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                </select>
+              </label>
+
+              <label className="block text-xs text-slate-500">
+                Project type (FT and WS are distinct)
+                <select
+                  className={`mt-1 ${fieldClass}`}
+                  value={
+                    PROJECT_TYPES.includes(d.Project_Type)
+                      ? d.Project_Type
+                      : 'Other'
+                  }
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (v === 'Other') setField('Project_Type', d.Project_Type || '')
+                    else setField('Project_Type', v)
+                  }}
+                >
+                  {PROJECT_TYPES.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+                {(!PROJECT_TYPES.includes(d.Project_Type) ||
+                  d.Project_Type === 'Other') && (
                   <input
-                    type="checkbox"
-                    checked={Boolean(emp[col])}
-                    onChange={(e) => patch(col, e.target.checked)}
+                    className={`mt-1 ${fieldClass}`}
+                    placeholder="Custom project type"
+                    value={
+                      PROJECT_TYPES.includes(d.Project_Type) &&
+                      d.Project_Type !== 'Other'
+                        ? ''
+                        : d.Project_Type || ''
+                    }
+                    onChange={(e) => setField('Project_Type', e.target.value)}
                   />
+                )}
+              </label>
+
+              {Object.entries(ENUM_COLUMNS).map(([col, options]) => (
+                <label key={col} className="block text-xs text-slate-500">
+                  {col.replace(/_/g, ' ')}
+                  <select
+                    className={`mt-1 ${fieldClass}`}
+                    value={d[col]}
+                    onChange={(e) => setField(col, e.target.value)}
+                  >
+                    {options.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               ))}
-              <label className="flex items-center justify-between gap-2 text-xs text-slate-600">
-                <span>Departed</span>
+
+              <label className="block text-xs text-slate-500">
+                TML Scripting (0–10)
                 <input
-                  type="checkbox"
-                  checked={Boolean(emp.isDeparted)}
-                  onChange={() => toggleDeparted(emp.id)}
+                  type="number"
+                  min={0}
+                  max={10}
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.TML_Scripting ?? 0}
+                  onChange={(e) =>
+                    setField('TML_Scripting', Number(e.target.value) || 0)
+                  }
                 />
               </label>
-            </div>
 
-            {emp.failedResponsibilities?.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase">
-                  Failed responsibilities
-                </p>
-                <ul className="mt-1 list-disc pl-4 text-xs text-rag-red">
-                  {emp.failedResponsibilities.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
+              <label className="block text-xs text-slate-500">
+                CS/ES HVM Releases (0–10)
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.CS_ES_HVM_Releases ?? 0}
+                  onChange={(e) =>
+                    setField('CS_ES_HVM_Releases', Number(e.target.value) || 0)
+                  }
+                />
+              </label>
+
+              <div className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                {BOOLEAN_COLUMNS.map((col) => (
+                  <label
+                    key={col}
+                    className="flex items-center justify-between gap-2 text-xs text-slate-600"
+                  >
+                    <span>{col.replace(/_/g, ' ')}</span>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(d[col])}
+                      onChange={(e) => setField(col, e.target.checked)}
+                    />
+                  </label>
+                ))}
+                <label className="flex items-center justify-between gap-2 text-xs text-slate-600">
+                  <span>Departed</span>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(d.isDeparted)}
+                    onChange={(e) => setField('isDeparted', e.target.checked)}
+                  />
+                </label>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </aside>
     </>

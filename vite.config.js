@@ -6,4 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/performance-rag/',
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.js'],
+  },
 })

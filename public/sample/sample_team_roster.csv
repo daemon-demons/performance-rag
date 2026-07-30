@@ -1,11 +1,11 @@
-Employee_Name,Role,Reports_To,Mentor_Name,Client,Project_Type,SMT_Versions_Known,Other_Testers,Handled_SC_WS,Handled_SOD_FT,CONT_Status,DBD_Bringup,Product_Focus,IP_Debug_Level,Client_Demand,Project_Projections_Current,TML_Scripting,CS_ES_HVM_Releases,Is_Independent,Does_Automation_Scripting,Handles_1_on_1_Mentoring,Produces_Documentation,Runs_Classroom_Training,Manages_Project_Deliverables,Manages_Multiple_Clients
+Employee_Name,Role,Reports_To,Mentor_Name,Client,Project_Type,SMT_Versions_Known,Other_Testers,SC_Experience,SOD_Handling,CONT_Status,DBD_Bringup,Product_Focus,IP_Debug_Level,Client_Demand,Project_Projections_Current,TML_Scripting,CS_ES_HVM_Releases,Is_Independent,Does_Automation_Scripting,Handles_1_on_1_Mentoring,Produces_Documentation,Runs_Classroom_Training,Manages_Project_Deliverables,Manages_Multiple_Clients
 Rajmohan,Manager,,,Client Q,Multi-Client Oversight,Both,TRUE,TRUE,TRUE,Bringup,TRUE,Both,Advanced,High,TRUE,8,9,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE
 Bhanu,Lead,Rajmohan,Rajmohan,Client Q,HVM Support,8,TRUE,TRUE,TRUE,Bringup,TRUE,Both,Advanced,High,TRUE,8,8,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE
 Mari,Lead,Rajmohan,Rajmohan,Client A,NPI,8,TRUE,TRUE,FALSE,Debug,TRUE,NPI,Advanced,Medium,TRUE,7,7,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,FALSE
 Sriram,Lead,Rajmohan,Rajmohan,Client G,Sustaining,7,TRUE,TRUE,TRUE,Bringup,FALSE,Sustaining,Basic,Medium,TRUE,7,6,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,FALSE
 Siva,Sr Eng 2,Rajmohan,Rajmohan,Client A,Platform Mentoring,Both,TRUE,TRUE,TRUE,Bringup,TRUE,Both,Advanced,High,TRUE,9,8,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE
-Hussain,Sr Eng 1,Bhanu,Bhanu,Client Q,SC/WS,7,TRUE,TRUE,FALSE,Debug,TRUE,Sustaining,Basic,High,TRUE,7,6,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
-Sneha,Sr Eng 1,Bhanu,Siva,Client Q,SOD/FT,7,TRUE,FALSE,TRUE,Bringup,TRUE,NPI,Advanced,Medium,TRUE,6,7,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Hussain,Sr Eng 1,Bhanu,Bhanu,Client Q,WS,7,TRUE,TRUE,FALSE,Debug,TRUE,Sustaining,Basic,High,TRUE,7,6,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Sneha,Sr Eng 1,Bhanu,Siva,Client Q,FT,7,TRUE,FALSE,TRUE,Bringup,TRUE,NPI,Advanced,Medium,TRUE,6,7,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
 Jayaram,Sr Eng 1,Bhanu,Bhanu,Client A,DBD,7,FALSE,TRUE,FALSE,Debug,TRUE,Sustaining,Basic,Medium,FALSE,6,5,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
 Sunil,Sr Eng 1,Mari,Mari,Client A,NPI,7,TRUE,TRUE,TRUE,Bringup,FALSE,NPI,Basic,Medium,TRUE,7,6,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
 Kevin,Sr Eng 1,Mari,Mari,Client A,CONT,7,FALSE,FALSE,TRUE,Debug,TRUE,Both,Basic,Low,TRUE,5,5,TRUE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE

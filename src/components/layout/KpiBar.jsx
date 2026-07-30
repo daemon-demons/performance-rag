@@ -2,11 +2,13 @@ import { useApp } from '../../context/AppContext'
 
 function KpiCard({ label, value, accent }) {
   return (
-    <div className="flex min-w-[110px] flex-1 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
-      <span className={`h-2.5 w-2.5 rounded-full ${accent}`} />
+    <div className="flex min-w-[110px] flex-1 items-center gap-3 rounded-xl border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:border-tessolve-blue/30">
+      <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${accent}`} />
       <div>
         <p className="text-xs text-slate-500">{label}</p>
-        <p className="font-display text-xl font-semibold text-slate-900">{value}</p>
+        <p className="font-display text-xl font-semibold text-tessolve-navy">
+          {value}
+        </p>
       </div>
     </div>
   )

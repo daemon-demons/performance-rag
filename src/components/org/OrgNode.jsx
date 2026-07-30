@@ -61,10 +61,10 @@ export default function OrgNode({ node }) {
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
-          className={`relative w-[9.5rem] cursor-grab overflow-hidden rounded-md border bg-white shadow-sm active:cursor-grabbing sm:w-40 ${
+          className={`relative w-[9.5rem] cursor-grab overflow-hidden rounded-xl border bg-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg active:cursor-grabbing sm:w-40 ${
             dropOver
               ? 'border-tessolve-blue ring-2 ring-tessolve-blue/40'
-              : 'border-slate-200'
+              : 'border-slate-200/90'
           } ${dragging ? 'opacity-40' : ''} ${node.isDeparted ? 'opacity-50' : ''}`}
         >
           <div

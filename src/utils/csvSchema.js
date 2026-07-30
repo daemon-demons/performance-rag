@@ -7,8 +7,8 @@ export const REQUIRED_COLUMNS = [
   'Project_Type',
   'SMT_Versions_Known',
   'Other_Testers',
-  'Handled_SC_WS',
-  'Handled_SOD_FT',
+  'SC_Experience',
+  'SOD_Handling',
   'CONT_Status',
   'DBD_Bringup',
   'Product_Focus',
@@ -42,8 +42,8 @@ export const ENUM_COLUMNS = {
 
 export const BOOLEAN_COLUMNS = [
   'Other_Testers',
-  'Handled_SC_WS',
-  'Handled_SOD_FT',
+  'SC_Experience',
+  'SOD_Handling',
   'DBD_Bringup',
   'Project_Projections_Current',
   'Is_Independent',

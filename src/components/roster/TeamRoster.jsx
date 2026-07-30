@@ -8,17 +8,18 @@ export default function TeamRoster() {
   return (
     <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
       <div className="mb-4">
-        <h2 className="font-display text-xl font-semibold text-slate-900">
+        <h2 className="font-display text-xl font-semibold text-tessolve-navy">
           Team Roster
         </h2>
         <p className="text-sm text-slate-500">
-          {filteredEmployees.length} people · click a name to view & edit
+          {filteredEmployees.length} people · click a name to view; Edit in
+          sidebar to change
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded border border-slate-200 bg-white">
+      <div className="card-plush overflow-x-auto p-0">
         <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-xs tracking-wide text-slate-500 uppercase">
+          <thead className="bg-slate-50/90 text-xs tracking-wide text-slate-500 uppercase">
             <tr>
               <th className="px-3 py-3 font-normal">Employee</th>
               <th className="px-3 py-3 font-normal">Role</th>

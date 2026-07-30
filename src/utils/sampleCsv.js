@@ -6,7 +6,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Rajmohan', Role: 'Manager', Reports_To: '', Mentor_Name: '',
     Client: 'Client Q', Project_Type: 'Multi-Client Oversight',
-    SMT_Versions_Known: 'Both', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: true, CONT_Status: 'Bringup',
+    SMT_Versions_Known: 'Both', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Advanced', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 8, CS_ES_HVM_Releases: 9,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -16,7 +16,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Bhanu', Role: 'Lead', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client Q', Project_Type: 'HVM Support',
-    SMT_Versions_Known: '8', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: true, CONT_Status: 'Bringup',
+    SMT_Versions_Known: '8', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Advanced', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 8, CS_ES_HVM_Releases: 8,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -26,7 +26,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Mari', Role: 'Lead', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client A', Project_Type: 'NPI',
-    SMT_Versions_Known: '8', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: false, CONT_Status: 'Debug',
+    SMT_Versions_Known: '8', Other_Testers: true, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'NPI', IP_Debug_Level: 'Advanced', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 7,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -36,7 +36,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sriram', Role: 'Lead', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client G', Project_Type: 'Sustaining',
-    SMT_Versions_Known: '7', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: true, CONT_Status: 'Bringup',
+    SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: false, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -46,7 +46,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Siva', Role: 'Sr Eng 2', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client A', Project_Type: 'Platform Mentoring',
-    SMT_Versions_Known: 'Both', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: true, CONT_Status: 'Bringup',
+    SMT_Versions_Known: 'Both', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Advanced', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 9, CS_ES_HVM_Releases: 8,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -55,8 +55,8 @@ const SAMPLE_ROWS = [
   },
   {
     Employee_Name: 'Hussain', Role: 'Sr Eng 1', Reports_To: 'Bhanu', Mentor_Name: 'Bhanu',
-    Client: 'Client Q', Project_Type: 'SC/WS',
-    SMT_Versions_Known: '7', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: false, CONT_Status: 'Debug',
+    Client: 'Client Q', Project_Type: 'WS',
+    SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -65,8 +65,8 @@ const SAMPLE_ROWS = [
   },
   {
     Employee_Name: 'Sneha', Role: 'Sr Eng 1', Reports_To: 'Bhanu', Mentor_Name: 'Siva',
-    Client: 'Client Q', Project_Type: 'SOD/FT',
-    SMT_Versions_Known: '7', Other_Testers: true, Handled_SC_WS: false, Handled_SOD_FT: true, CONT_Status: 'Bringup',
+    Client: 'Client Q', Project_Type: 'FT',
+    SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: false, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'NPI', IP_Debug_Level: 'Advanced', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 6, CS_ES_HVM_Releases: 7,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -76,7 +76,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Jayaram', Role: 'Sr Eng 1', Reports_To: 'Bhanu', Mentor_Name: 'Bhanu',
     Client: 'Client A', Project_Type: 'DBD',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: true, Handled_SOD_FT: false, CONT_Status: 'Debug',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: false, TML_Scripting: 6, CS_ES_HVM_Releases: 5,
     Is_Independent: true, Does_Automation_Scripting: false, Handles_1_on_1_Mentoring: false,
@@ -86,7 +86,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sunil', Role: 'Sr Eng 1', Reports_To: 'Mari', Mentor_Name: 'Mari',
     Client: 'Client A', Project_Type: 'NPI',
-    SMT_Versions_Known: '7', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: true, CONT_Status: 'Bringup',
+    SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: false, Product_Focus: 'NPI', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -96,7 +96,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Kevin', Role: 'Sr Eng 1', Reports_To: 'Mari', Mentor_Name: 'Mari',
     Client: 'Client A', Project_Type: 'CONT',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: false, Handled_SOD_FT: true, CONT_Status: 'Debug',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: true, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Basic', Client_Demand: 'Low',
     Project_Projections_Current: true, TML_Scripting: 5, CS_ES_HVM_Releases: 5,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: false,
@@ -106,7 +106,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Abarna', Role: 'Sr Eng 1', Reports_To: 'Sriram', Mentor_Name: 'Sriram',
     Client: 'Client G', Project_Type: 'Training / Sustaining',
-    SMT_Versions_Known: '7', Other_Testers: true, Handled_SC_WS: true, Handled_SOD_FT: false, CONT_Status: 'Bringup',
+    SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Advanced', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: true,
@@ -116,7 +116,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Abi', Role: 'Eng 1', Reports_To: 'Hussain', Mentor_Name: 'Siva',
     Client: 'Client Q', Project_Type: 'Lab Support',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: true, Handled_SOD_FT: false, CONT_Status: 'Debug',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: false, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 5, CS_ES_HVM_Releases: 4,
     Is_Independent: true, Does_Automation_Scripting: false, Handles_1_on_1_Mentoring: false,
@@ -126,7 +126,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sai', Role: 'Eng 1', Reports_To: 'Sneha', Mentor_Name: 'Siva',
     Client: 'Client Q', Project_Type: 'Pattern Support',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: false, Handled_SOD_FT: true, CONT_Status: 'No_Idea',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: true, CONT_Status: 'No_Idea',
     DBD_Bringup: false, Product_Focus: 'NPI', IP_Debug_Level: 'None', Client_Demand: 'Low',
     Project_Projections_Current: false, TML_Scripting: 4, CS_ES_HVM_Releases: 3,
     Is_Independent: false, Does_Automation_Scripting: false, Handles_1_on_1_Mentoring: false,
@@ -136,7 +136,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Santhosh', Role: 'Eng 2', Reports_To: 'Sriram', Mentor_Name: 'Sneha',
     Client: 'Client G', Project_Type: 'Scripting',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: true, Handled_SOD_FT: true, CONT_Status: 'Debug',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 8, CS_ES_HVM_Releases: 5,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: false,
@@ -146,7 +146,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Vijay', Role: 'Eng 2', Reports_To: 'Siva', Mentor_Name: 'Siva',
     Client: 'Client A', Project_Type: 'Bringup',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: true, Handled_SOD_FT: false, CONT_Status: 'Bringup',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'NPI', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 6, CS_ES_HVM_Releases: 5,
     Is_Independent: true, Does_Automation_Scripting: true, Handles_1_on_1_Mentoring: false,
@@ -156,7 +156,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Ankush', Role: 'Eng 1', Reports_To: 'Sriram', Mentor_Name: 'Sriram',
     Client: 'Client G', Project_Type: 'Support',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: false, Handled_SOD_FT: false, CONT_Status: 'No_Idea',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: false, CONT_Status: 'No_Idea',
     DBD_Bringup: false, Product_Focus: 'Sustaining', IP_Debug_Level: 'None', Client_Demand: 'Low',
     Project_Projections_Current: false, TML_Scripting: 3, CS_ES_HVM_Releases: 2,
     Is_Independent: false, Does_Automation_Scripting: false, Handles_1_on_1_Mentoring: false,
@@ -166,7 +166,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Bhavya', Role: 'Intern', Reports_To: 'Sriram', Mentor_Name: 'Abarna',
     Client: 'Client G', Project_Type: 'Learning Track',
-    SMT_Versions_Known: '7', Other_Testers: false, Handled_SC_WS: false, Handled_SOD_FT: false, CONT_Status: 'No_Idea',
+    SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: false, CONT_Status: 'No_Idea',
     DBD_Bringup: false, Product_Focus: 'NPI', IP_Debug_Level: 'None', Client_Demand: 'Low',
     Project_Projections_Current: false, TML_Scripting: 2, CS_ES_HVM_Releases: 1,
     Is_Independent: false, Does_Automation_Scripting: false, Handles_1_on_1_Mentoring: false,
