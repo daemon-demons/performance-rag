@@ -1,0 +1,19 @@
+Employee_Name,Role,Reports_To,Mentor_Name,Client,Project_Type,Smartest_V7,Smartest_V8,Test_Program_Integration,Test_Program_Development,Pattern_Debugs,Scripting_Tools,Data_Analytics,Version_Control_Git,IP_Knowledge,Post_Silicon_Validation,Bench_Setup_Stabilization,Loadboard_Bringup,HW_Validation,GRR_Analysis,Engineering_Bringups,Multisite_Bringup,TapeOut_To_HVM,Volume_KPI_Analysis,Production_Release_Track,Is_Independent,Does_Automation_Scripting,Handles_1_on_1_Mentoring,Produces_Documentation,Runs_Classroom_Training,Manages_Project_Deliverables,Manages_Multiple_Clients
+Priya Nair,Manager,,,Qualcomm,HVM Support,7,9,8,7,10,10,7,9,8,7,10,8,9,8,9,9,9,10,8,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE
+Arjun Mehta,Sr Lead,Priya Nair,Priya Nair,Qualcomm,New Product Intro,8,9,10,9,9,9,10,8,10,8,8,8,8,7,9,7,8,7,9,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE
+Sneha Reddy,Lead,Arjun Mehta,Arjun Mehta,Qualcomm,Characterization,7,8,9,7,7,8,8,8,8,7,10,8,10,7,10,6,8,8,10,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE
+Karthik Iyer,Sr Eng 2,Sneha Reddy,Sneha Reddy,NXP,Pattern Debug,9,5,6,9,7,7,6,7,8,9,6,9,5,7,7,6,9,8,8,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
+Ananya Krishnan,Sr Eng 1,Sneha Reddy,Karthik Iyer,NXP,Lab Bringup,7,7,5,7,7,6,5,5,7,7,7,7,7,6,7,4,7,6,7,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Rahul Desai,Eng 2,Karthik Iyer,Ananya Krishnan,NXP,Test Development,7,7,5,3,6,6,4,5,5,6,4,4,6,5,3,7,6,8,6,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
+Meera Joshi,Eng 1,Karthik Iyer,Rahul Desai,Infineon,Characterization,5,6,6,3,5,3,4,4,3,5,4,6,4,4,4,3,5,6,5,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
+Vikram Rao,Eng 2,Sneha Reddy,Sneha Reddy,Infineon,Automation,7,7,5,6,6,8,7,7,7,6,6,8,7,6,3,3,7,5,6,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
+Divya Patel,Sr Eng 1,Arjun Mehta,Arjun Mehta,Broadcom,HVM Support,7,5,6,5,7,6,8,7,8,6,6,7,5,6,5,4,6,4,5,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Nikhil Sharma,Lead,Priya Nair,Priya Nair,Broadcom,New Product Intro,8,7,9,6,6,6,9,6,10,9,7,7,8,8,9,9,8,9,10,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,FALSE
+Lakshmi Venkat,Eng 1,Nikhil Sharma,Nikhil Sharma,Broadcom,Test Development,6,3,4,4,3,4,2,3,6,4,2,6,5,4,2,3,6,6,2,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
+Aditya Menon,Intern,Rahul Desai,Meera Joshi,Infineon,Lab Support,4,3,5,3,1,5,2,4,3,4,3,3,2,5,5,2,4,3,3,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Pooja Banerjee,Sr Eng 2,Nikhil Sharma,Nikhil Sharma,Qualcomm,Multisite Bringup,7,5,5,9,6,10,8,6,6,9,7,9,10,6,7,7,5,8,7,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Suresh Kumar,Staff,,,NXP,Cross-Client Strategy,7,9,10,8,10,7,10,10,9,9,8,10,7,9,8,9,9,10,8,TRUE,FALSE,TRUE,TRUE,FALSE,TRUE,FALSE
+Ishita Gupta,Eng 1,Pooja Banerjee,Pooja Banerjee,Qualcomm,GRR Analysis,5,2,3,6,2,3,3,6,6,5,4,6,4,6,5,6,2,4,6,TRUE,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE
+Rohan Kapoor,Eng 2,Nikhil Sharma,Pooja Banerjee,Broadcom,Scripting,5,5,5,4,5,6,5,6,5,5,7,6,6,4,8,4,7,5,3,TRUE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE
+Neha Sinha,Sr Eng 1,Sneha Reddy,Sneha Reddy,Qualcomm,HW Validation,7,9,5,7,6,8,5,6,6,5,5,5,7,6,8,6,7,9,6,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Amit Bose,Eng 1,Ananya Krishnan,Ananya Krishnan,NXP,Bench Setup,4,4,3,4,5,5,6,5,4,4,3,4,6,5,5,5,6,5,6,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE
