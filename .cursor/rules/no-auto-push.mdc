@@ -1,0 +1,10 @@
+---
+description: Never auto-push to git remotes; only push when explicitly asked
+alwaysApply: true
+---
+
+# No automatic git push
+
+- Do **not** run `git push` (or any remote publish such as `gh-pages -d dist`) unless the user explicitly asks to push, publish, or deploy.
+- Commits are also only when explicitly requested.
+- After committing locally (when asked), stop and report status — leave pushing to the user unless they also asked to push.

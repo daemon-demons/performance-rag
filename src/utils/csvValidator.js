@@ -1,9 +1,10 @@
 import Papa from 'papaparse'
 import {
   REQUIRED_COLUMNS,
-  SKILL_COLUMNS,
+  NUMERIC_SKILL_COLUMNS,
   BOOLEAN_COLUMNS,
   META_COLUMNS,
+  ENUM_COLUMNS,
 } from './csvSchema'
 
 function parseBoolean(value) {
@@ -21,10 +22,62 @@ function parseNumber(value) {
   return Number.isFinite(n) ? n : 0
 }
 
+function parseEnum(col, value) {
+  const allowed = ENUM_COLUMNS[col] || []
+  const raw = String(value ?? '').trim()
+  if (!raw) return allowed[0] || ''
+
+  if (col === 'SMT_Versions_Known') {
+    const l = raw.toLowerCase().replace(/\s+/g, '')
+    if (l === 'both' || l === '7+8' || l === '8+7' || l === '7and8' || l === 'v7v8') {
+      return 'Both'
+    }
+    if (l === '8' || l === 'v8' || l === 'sm8') return '8'
+    if (l === '7' || l === 'v7' || l === 'sm7') return '7'
+    // legacy numeric scores → nearest allowed
+    const n = Number(raw)
+    if (Number.isFinite(n)) {
+      if (n >= 9) return 'Both'
+      if (n >= 8) return '8'
+      return '7'
+    }
+    return '7'
+  }
+
+  const match = allowed.find(
+    (a) => a.toLowerCase() === raw.toLowerCase().replace(/\s+/g, '_'),
+  )
+  if (match) return match
+  // soft aliases
+  if (col === 'CONT_Status') {
+    const l = raw.toLowerCase()
+    if (l.includes('bring')) return 'Bringup'
+    if (l.includes('debug')) return 'Debug'
+    return 'No_Idea'
+  }
+  if (col === 'Product_Focus') {
+    const l = raw.toLowerCase()
+    if (l.includes('both')) return 'Both'
+    if (l.includes('npi')) return 'NPI'
+    return 'Sustaining'
+  }
+  if (col === 'IP_Debug_Level') {
+    const l = raw.toLowerCase()
+    if (l.includes('adv')) return 'Advanced'
+    if (l.includes('basic')) return 'Basic'
+    return 'None'
+  }
+  if (col === 'Client_Demand') {
+    const l = raw.toLowerCase()
+    if (l.includes('high')) return 'High'
+    if (l.includes('low')) return 'Low'
+    return 'Medium'
+  }
+  return allowed[0] || raw
+}
+
 /**
  * Validate and parse CSV text with PapaParse (browser-only).
- * @param {string} text
- * @returns {{ ok: true, employees: object[] } | { ok: false, errors: string[], missingColumns: string[] }}
  */
 export function validateAndParseCsvText(text) {
   if (typeof text !== 'string' || !text.trim()) {
@@ -97,8 +150,12 @@ export function validateAndParseCsvText(text) {
         employee[col] = String(row[col] ?? '').trim()
       }
 
-      for (const col of SKILL_COLUMNS) {
+      for (const col of NUMERIC_SKILL_COLUMNS) {
         employee[col] = parseNumber(row[col])
+      }
+
+      for (const col of Object.keys(ENUM_COLUMNS)) {
+        employee[col] = parseEnum(col, row[col])
       }
 
       for (const col of BOOLEAN_COLUMNS) {
@@ -121,8 +178,6 @@ export function validateAndParseCsvText(text) {
 
 /**
  * Validate and parse a CSV File using FileReader + PapaParse (browser-only).
- * @param {File} file
- * @returns {Promise<{ ok: true, employees: object[] } | { ok: false, errors: string[], missingColumns: string[] }>}
  */
 export function validateAndParseCsv(file) {
   return new Promise((resolve) => {

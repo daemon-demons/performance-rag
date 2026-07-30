@@ -5,11 +5,13 @@
   --color-tessolve-orange-dark: #D96A1A;
   --color-tessolve-blue: #23A6E3;
   --color-tessolve-blue-dark: #1A8BC0;
+  --color-tessolve-navy: #0B1C2C;
+  --color-tessolve-navy-mid: #12263A;
   --color-rag-green: #16A34A;
   --color-rag-amber: #D97706;
   --color-rag-red: #DC2626;
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -20,11 +22,183 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
-  background: #f1f5f9;
-  color: #0f172a;
+  font-weight: 400;
+  background: #f8fafc;
+  color: #334155;
   -webkit-font-smoothing: antialiased;
 }
 
 #root {
   min-height: 100vh;
 }
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Classic hierarchical org tree — siblings side-by-side with connectors */
+.org-chart-root {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  min-width: max-content;
+}
+
+.org-chart-root > .org-branch {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.org-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.org-branch > .org-card-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.org-kids {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 1.5rem;
+  position: relative;
+  margin: 0;
+  list-style: none;
+}
+
+/* Vertical stub from parent down to the horizontal bar */
+.org-kids::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0;
+  height: 1.5rem;
+  border-left: 2px solid #94a3b8;
+  transform: translateX(-50%);
+}
+
+.org-kids > .org-branch {
+  position: relative;
+  padding: 1.5rem 0.75rem 0;
+}
+
+/* Horizontal connectors between siblings */
+.org-kids > .org-branch::before,
+.org-kids > .org-branch::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 50%;
+  width: 50%;
+  height: 1.5rem;
+  border-top: 2px solid #94a3b8;
+}
+
+.org-kids > .org-branch::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid #94a3b8;
+}
+
+.org-kids > .org-branch:only-child::before,
+.org-kids > .org-branch:only-child::after {
+  display: none;
+}
+
+.org-kids > .org-branch:only-child {
+  padding-top: 1.5rem;
+}
+
+.org-kids > .org-branch:only-child::after {
+  display: block;
+  border-top: none;
+  border-left: 2px solid #94a3b8;
+  height: 1.5rem;
+  width: 0;
+  left: 50%;
+}
+
+.org-kids > .org-branch:first-child::before {
+  border: none;
+}
+
+.org-kids > .org-branch:first-child::after {
+  border-radius: 6px 0 0 0;
+}
+
+.org-kids > .org-branch:last-child::after {
+  border: none;
+}
+
+.org-kids > .org-branch:last-child::before {
+  border-right: 2px solid #94a3b8;
+  border-radius: 0 6px 0 0;
+}
+
+.org-kids--roots {
+  padding-top: 0;
+}
+
+.org-kids--roots::before {
+  display: none;
+}
+
+.org-kids--roots > .org-branch {
+  padding-top: 0;
+}
+
+.org-kids--roots > .org-branch::before,
+.org-kids--roots > .org-branch::after {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .org-kids {
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 1rem;
+    padding-left: 1.25rem;
+  }
+
+  .org-kids::before {
+    left: 0;
+    transform: none;
+    height: 100%;
+    top: 0;
+    border-left: 2px solid #94a3b8;
+  }
+
+  .org-kids > .org-branch {
+    align-items: stretch;
+    padding: 0.5rem 0 0.5rem 1.25rem;
+  }
+
+  .org-kids > .org-branch::before,
+  .org-kids > .org-branch::after {
+    display: none;
+  }
+
+  .org-kids > .org-branch::before {
+    display: block;
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 1.25rem;
+    height: 0;
+    border-top: 2px solid #94a3b8;
+    border-left: none;
+    right: auto;
+  }
+}
+

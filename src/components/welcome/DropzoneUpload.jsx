@@ -22,18 +22,18 @@ export default function DropzoneUpload({ onFile, disabled }) {
       {...getRootProps()}
       className={`cursor-pointer rounded-2xl border-2 border-dashed px-6 py-12 text-center transition ${
         isDragActive
-          ? 'border-tessolve-orange bg-orange-50'
-          : 'border-slate-300 bg-white/80 hover:border-tessolve-blue hover:bg-sky-50/50'
+          ? 'border-tessolve-orange bg-orange-50/10'
+          : 'border-white/30 bg-white/5 hover:border-tessolve-blue hover:bg-white/10'
       } ${disabled ? 'pointer-events-none opacity-60' : ''}`}
     >
       <input {...getInputProps()} />
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-tessolve-orange to-tessolve-blue text-white shadow-lg">
-        {isDragActive ? <FileSpreadsheet size={28} /> : <Upload size={28} />}
+        {isDragActive ? <FileSpreadsheet size={26} /> : <Upload size={26} />}
       </div>
-      <p className="font-display text-lg font-semibold text-slate-800">
+      <p className="font-display text-lg font-semibold text-white">
         {isDragActive ? 'Drop your CSV here' : 'Drag & drop team CSV'}
       </p>
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-slate-300">
         or click to browse — processed 100% in your browser
       </p>
     </div>

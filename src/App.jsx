@@ -4,11 +4,11 @@ import WelcomeScreen from './components/welcome/WelcomeScreen'
 import DashboardLayout from './pages/DashboardLayout'
 import TeamRoster from './components/roster/TeamRoster'
 import OrgChart from './components/org/OrgChart'
-import AnalyticsMatrix from './components/analytics/AnalyticsMatrix'
+import DashboardView from './components/dashboard/DashboardView'
 
 function WelcomeGate() {
   const { hasData } = useApp()
-  if (hasData) return <Navigate to="/roster" replace />
+  if (hasData) return <Navigate to="/dashboard" replace />
   return <WelcomeScreen />
 }
 
@@ -19,9 +19,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<WelcomeGate />} />
           <Route element={<DashboardLayout />}>
-            <Route path="/roster" element={<TeamRoster />} />
+            <Route path="/dashboard" element={<DashboardView />} />
             <Route path="/org" element={<OrgChart />} />
-            <Route path="/analytics" element={<AnalyticsMatrix />} />
+            <Route path="/roster" element={<TeamRoster />} />
+            <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -7,16 +7,13 @@ const DOWNGRADE = {
 /**
  * Apply attrition cascade: mentees of departed engineers are downgraded one step
  * when simulation mode is enabled. Direct mentor match only (one hop).
- *
- * @param {object[]} evaluatedEmployees - employees with baseRagStatus / ragStatus
- * @param {boolean} attritionMode
- * @returns {object[]}
+ * Uses baseRagStatus as input; writes ragStatus.
  */
 export function applyAttritionCascade(evaluatedEmployees, attritionMode) {
   if (!attritionMode) {
     return evaluatedEmployees.map((emp) => ({
       ...emp,
-      ragStatus: emp.isDeparted ? emp.baseRagStatus : emp.baseRagStatus,
+      ragStatus: emp.baseRagStatus,
       attritionDowngraded: false,
     }))
   }

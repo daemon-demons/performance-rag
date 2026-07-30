@@ -56,23 +56,22 @@ npm run deploy
 
 1. On the welcome screen, click **Run demo with sample roster** (loads `sample/sample_team_roster.csv`), or drag-and-drop your own team CSV.
 2. Invalid schemas show a clear error and a **Generate & Download Sample CSV** button.
-3. After load: **Team Roster**, **Org Chart**, and **Analytics** tabs with Client / Role / RAG filters.
-4. Toggle **Departed** on roster rows; enable **Attrition Simulation** to cascade mentee RAG downgrades.
+3. After load: **Dashboard** (default), **Org Chart**, then **Team Roster**, with Client / Role / RAG filters.
+4. Toggle **Departed** on roster or org nodes; enable **Attrition Simulation** to cascade mentee RAG downgrades. Leader RAG also reflects direct-report health.
 
-Regenerate randomized demo data:
+Regenerate demo data:
 
 ```bash
 npm run generate:sample
 ```
 
-This writes `sample/sample_team_roster.csv` and copies it to `public/sample/` for static serving.
-
 ## RAG engine
 
 See `src/utils/ragEvaluator.js`:
 
-- `Overall_Score = Max_V93k×0.35 + Lab_Score×0.35 + Process_Score×0.30`
-- Role baselines and responsibility flags determine GREEN / AMBER / RED
+- Scores from new skills: Platform / Delivery / Depth → Overall
+- Role baselines and responsibility flags determine base GREEN / AMBER / RED
+- Upward hierarchy adjustment for Sr / Lead / Manager based on reports' RAG
 
 ## Privacy
 

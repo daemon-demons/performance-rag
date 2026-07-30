@@ -7,14 +7,33 @@ export default function FilterBar() {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
+  const selectClass =
+    'min-w-[140px] rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-tessolve-blue focus:outline-none'
+
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+      <label className="flex flex-col gap-1 text-xs text-slate-500">
+        Person
+        <select
+          value={filters.person || 'All'}
+          onChange={(e) => update('person', e.target.value)}
+          className={selectClass}
+        >
+          <option value="All">All people</option>
+          {filterOptions.people?.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1 text-xs text-slate-500">
         Client
         <select
           value={filters.client}
           onChange={(e) => update('client', e.target.value)}
-          className="min-w-[140px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-tessolve-blue focus:outline-none focus:ring-2 focus:ring-tessolve-blue/20"
+          className={selectClass}
         >
           <option value="All">All Clients</option>
           {filterOptions.clients.map((c) => (
@@ -25,12 +44,12 @@ export default function FilterBar() {
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+      <label className="flex flex-col gap-1 text-xs text-slate-500">
         Role
         <select
           value={filters.role}
           onChange={(e) => update('role', e.target.value)}
-          className="min-w-[140px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-tessolve-blue focus:outline-none focus:ring-2 focus:ring-tessolve-blue/20"
+          className={selectClass}
         >
           <option value="All">All Roles</option>
           {filterOptions.roles.map((r) => (
@@ -41,12 +60,12 @@ export default function FilterBar() {
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+      <label className="flex flex-col gap-1 text-xs text-slate-500">
         RAG Status
         <select
           value={filters.rag}
           onChange={(e) => update('rag', e.target.value)}
-          className="min-w-[140px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-tessolve-blue focus:outline-none focus:ring-2 focus:ring-tessolve-blue/20"
+          className={selectClass}
         >
           <option value="All">All Statuses</option>
           <option value="GREEN">Green</option>

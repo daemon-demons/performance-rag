@@ -26,7 +26,7 @@ export default function WelcomeScreen() {
       return false
     }
     loadEmployees(result.employees)
-    navigate('/roster')
+    navigate('/dashboard')
     return true
   }
 
@@ -34,8 +34,7 @@ export default function WelcomeScreen() {
     setLoading(true)
     setError(null)
     try {
-      const result = await validateAndParseCsv(file)
-      applyParseResult(result)
+      applyParseResult(await validateAndParseCsv(file))
     } catch (err) {
       setError({
         messages: [err?.message || 'Unexpected error while parsing CSV.'],
@@ -52,12 +51,9 @@ export default function WelcomeScreen() {
     try {
       const response = await fetch(DEMO_SAMPLE_URL)
       if (!response.ok) {
-        throw new Error(
-          `Could not load demo sample (${response.status}). Ensure sample/sample_team_roster.csv is available.`,
-        )
+        throw new Error(`Could not load demo sample (${response.status}).`)
       }
-      const text = await response.text()
-      applyParseResult(validateAndParseCsvText(text))
+      applyParseResult(validateAndParseCsvText(await response.text()))
     } catch (err) {
       setError({
         messages: [err?.message || 'Failed to load demo sample roster.'],
@@ -74,14 +70,14 @@ export default function WelcomeScreen() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse 80% 60% at 10% 20%, rgba(242,128,43,0.18), transparent), radial-gradient(ellipse 70% 50% at 90% 10%, rgba(35,166,227,0.2), transparent), linear-gradient(160deg, #0b1c2c 0%, #12263a 45%, #1a3348 100%)',
+            'radial-gradient(ellipse 80% 60% at 10% 20%, rgba(242,128,43,0.22), transparent), radial-gradient(ellipse 70% 50% at 90% 10%, rgba(35,166,227,0.25), transparent), linear-gradient(160deg, #0b1c2c 0%, #12263a 45%, #1a3348 100%)',
         }}
       />
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)',
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
           backgroundSize: '48px 48px',
         }}
       />
@@ -96,7 +92,7 @@ export default function WelcomeScreen() {
               Tessolve
             </p>
             <p className="text-xs text-slate-300">
-              Semiconductor Test Engineering · Performance RAG
+              Silicon & Systems · Test Engineering · Performance RAG
             </p>
           </div>
         </div>
@@ -108,20 +104,21 @@ export default function WelcomeScreen() {
           </span>
         </h1>
         <p className="mt-4 max-w-xl text-base text-slate-300 sm:text-lg">
-          Load your team roster CSV to evaluate skills, responsibilities, and
-          client risk — entirely on this device.
+          Enabling semiconductor test excellence — load your team roster to
+          evaluate skills, responsibilities, and client risk entirely on this
+          device.
         </p>
 
         <div className="mt-10">
           <DropzoneUpload onFile={handleFile} disabled={loading} />
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={handleLoadDemo}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-tessolve-blue px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-tessolve-blue-dark disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-tessolve-orange px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-tessolve-orange-dark disabled:opacity-60"
           >
             <Play size={16} />
             Run demo with sample roster
@@ -138,17 +135,17 @@ export default function WelcomeScreen() {
         </div>
 
         {loading && (
-          <p className="mt-4 text-center text-sm text-sky-200">
+          <p className="mt-4 text-sm text-sky-200">
             Validating and evaluating roster…
           </p>
         )}
 
         {error && (
-          <div className="mt-6 rounded-2xl border border-red-400/40 bg-red-950/40 p-5 text-left backdrop-blur">
+          <div className="mt-6 rounded-2xl border border-red-400/40 bg-red-950/40 p-5 backdrop-blur">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 shrink-0 text-red-400" size={22} />
+              <AlertTriangle className="mt-0.5 shrink-0 text-red-400" size={20} />
               <div className="min-w-0 flex-1">
-                <h2 className="font-display text-lg font-semibold text-red-200">
+                <h2 className="font-display text-base font-semibold text-red-200">
                   CSV validation failed
                 </h2>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-100/90">
@@ -157,28 +154,23 @@ export default function WelcomeScreen() {
                   ))}
                 </ul>
                 {error.missingColumns.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold tracking-wide text-red-300 uppercase">
-                      Missing columns
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {error.missingColumns.map((col) => (
-                        <span
-                          key={col}
-                          className="rounded-md bg-red-900/60 px-2 py-0.5 font-mono text-[11px] text-red-100"
-                        >
-                          {col}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {error.missingColumns.map((col) => (
+                      <span
+                        key={col}
+                        className="rounded-md bg-red-900/60 px-2 py-0.5 font-mono text-[11px] text-red-100"
+                      >
+                        {col}
+                      </span>
+                    ))}
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={downloadSampleCsv}
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-tessolve-orange px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-tessolve-orange-dark"
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-tessolve-orange px-4 py-2.5 text-sm font-semibold text-white hover:bg-tessolve-orange-dark"
                 >
-                  <Download size={16} />
+                  <Download size={15} />
                   Generate & Download Sample CSV
                 </button>
               </div>
@@ -186,8 +178,8 @@ export default function WelcomeScreen() {
           </div>
         )}
 
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Demo data lives in <code className="text-slate-300">sample/sample_team_roster.csv</code>
+        <p className="mt-8 text-xs text-slate-400">
+          Demo data: <code className="text-slate-300">sample/sample_team_roster.csv</code>
         </p>
       </div>
     </div>

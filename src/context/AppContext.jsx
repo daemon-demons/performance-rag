@@ -5,31 +5,37 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { evaluateTeam } from '../utils/ragEvaluator'
+import { evaluateTeam, applyHierarchyRag } from '../utils/ragEvaluator'
 import { applyAttritionCascade } from '../utils/attritionCascade'
 import { aggregateClientRisk } from '../utils/clientRisk'
+import {
+  buildOrgTree,
+  collectSubtree,
+  wouldCreateCycle,
+} from '../utils/orgTree'
 
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
   const [rawEmployees, setRawEmployees] = useState(null)
-  const [attritionMode, setAttritionMode] = useState(false)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null)
   const [filters, setFilters] = useState({
     client: 'All',
     role: 'All',
     rag: 'All',
+    person: 'All',
   })
 
   const loadEmployees = useCallback((employees) => {
     setRawEmployees(employees.map((e) => ({ ...e, isDeparted: false })))
-    setFilters({ client: 'All', role: 'All', rag: 'All' })
-    setAttritionMode(false)
+    setFilters({ client: 'All', role: 'All', rag: 'All', person: 'All' })
+    setSelectedEmployeeId(null)
   }, [])
 
   const clearData = useCallback(() => {
     setRawEmployees(null)
-    setAttritionMode(false)
-    setFilters({ client: 'All', role: 'All', rag: 'All' })
+    setFilters({ client: 'All', role: 'All', rag: 'All', person: 'All' })
+    setSelectedEmployeeId(null)
   }, [])
 
   const toggleDeparted = useCallback((employeeId) => {
@@ -41,11 +47,30 @@ export function AppProvider({ children }) {
     })
   }, [])
 
+  const updateEmployee = useCallback((employeeId, patch) => {
+    setRawEmployees((prev) => {
+      if (!prev) return prev
+      return prev.map((e) => (e.id === employeeId ? { ...e, ...patch } : e))
+    })
+  }, [])
+
+  const reassignReport = useCallback((employeeId, managerName) => {
+    setRawEmployees((prev) => {
+      if (!prev) return prev
+      const mgr = String(managerName || '').trim()
+      if (wouldCreateCycle(prev, employeeId, mgr)) return prev
+      return prev.map((e) =>
+        e.id === employeeId ? { ...e, Reports_To: mgr } : e,
+      )
+    })
+  }, [])
+
   const evaluated = useMemo(() => {
     if (!rawEmployees) return []
     const scored = evaluateTeam(rawEmployees)
-    return applyAttritionCascade(scored, attritionMode)
-  }, [rawEmployees, attritionMode])
+    const afterAttrition = applyAttritionCascade(scored, true)
+    return applyHierarchyRag(afterAttrition)
+  }, [rawEmployees])
 
   const clientRisk = useMemo(
     () => aggregateClientRisk(evaluated),
@@ -59,7 +84,11 @@ export function AppProvider({ children }) {
     const roles = [
       ...new Set(evaluated.map((e) => e.Role).filter(Boolean)),
     ].sort()
-    return { clients, roles }
+    const people = evaluated
+      .map((e) => e.Employee_Name)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+    return { clients, roles, people }
   }, [evaluated])
 
   const filteredEmployees = useMemo(() => {
@@ -70,6 +99,19 @@ export function AppProvider({ children }) {
       return true
     })
   }, [evaluated, filters])
+
+  /** Org view: person filter expands to self + descendants (ignores other filters). */
+  const orgEmployees = useMemo(() => {
+    if (filters.person && filters.person !== 'All') {
+      return collectSubtree(evaluated, filters.person)
+    }
+    return filteredEmployees
+  }, [evaluated, filteredEmployees, filters.person])
+
+  const selectedEmployee = useMemo(() => {
+    if (!selectedEmployeeId) return null
+    return evaluated.find((e) => e.id === selectedEmployeeId) || null
+  }, [evaluated, selectedEmployeeId])
 
   const kpis = useMemo(() => {
     const total = evaluated.length
@@ -90,16 +132,21 @@ export function AppProvider({ children }) {
     hasData: Boolean(rawEmployees?.length),
     employees: evaluated,
     filteredEmployees,
+    orgEmployees,
     filters,
     setFilters,
     filterOptions,
-    attritionMode,
-    setAttritionMode,
     loadEmployees,
     clearData,
     toggleDeparted,
+    updateEmployee,
+    reassignReport,
+    selectedEmployeeId,
+    setSelectedEmployeeId,
+    selectedEmployee,
     kpis,
     clientRisk,
+    buildOrgTree,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
