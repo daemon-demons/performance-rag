@@ -27,7 +27,24 @@ npm run build
 npm run preview
 ```
 
-Deploy the `dist/` folder to GitHub Pages (Settings → Pages → deploy from `gh-pages` branch or GitHub Actions). Convenience script:
+### Deploy (required for a working site)
+
+GitHub Pages must serve the **built** `dist/` output — not the Vite source on `main`.
+
+**Option A — one-shot publish to `gh-pages` branch**
+
+```bash
+npm run deploy
+```
+
+Then in the repo: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `gh-pages` / `/ (root)`**.
+
+**Option B — GitHub Actions** (workflow in `.github/workflows/deploy-pages.yml`)
+
+1. **Settings → Pages → Source: GitHub Actions**
+2. Push to `main` (or run the workflow manually). Site URL: `https://daemon-demons.github.io/performance-rag/`
+
+Convenience script (Option A):
 
 ```bash
 npm run deploy
