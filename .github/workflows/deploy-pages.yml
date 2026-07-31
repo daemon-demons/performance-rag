@@ -5,8 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Node 24 action runtimes — see
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -19,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -32,6 +34,24 @@ jobs:
           npm ci
           npm test
           npm run build
+
+      - name: Verify production build (not Vite source HTML)
+        run: |
+          test -f dist/index.html
+          if grep -q '/src/main.jsx' dist/index.html; then
+            echo "dist/index.html still points at /src/main.jsx — vite build failed"
+            exit 1
+          fi
+          grep -q '/performance-rag/assets/' dist/index.html
+
+      # Publishes built assets to the gh-pages branch (works when Pages source = branch gh-pages)
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean: true
+          single-commit: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
@@ -47,4 +67,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
