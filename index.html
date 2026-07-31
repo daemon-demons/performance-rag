@@ -19,7 +19,7 @@
       // GitHub Pages branch/root serves Vite source → blank. Go to /docs/ build.
       (function () {
         if (!/\.github\.io$/i.test(location.hostname)) return
-        if (!document.querySelector('script[src*="/src/main.jsx"]')) return
+        if (!document.querySelector('script[src*="main.jsx"]')) return
         if (/\/docs(\/|$)/.test(location.pathname)) return
         var base = location.pathname.replace(/\/?$/, '/')
         location.replace(base + 'docs/' + location.search + location.hash)
