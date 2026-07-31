@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          # Need full history / writeable main for docs publish
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -43,13 +46,23 @@ jobs:
           fi
           grep -q '/performance-rag/assets/' dist/index.html
 
-      # Publish built site into main:/docs (GitHub Pages → branch main → folder /docs)
-      - name: Deploy dist to main/docs
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          branch: main
-          target-folder: docs
-          clean: true
-          single-commit: true
-          commit-message: 'Deploy production build to docs [skip ci]'
+      # Publish built site into main:/docs (Pages → branch main → folder /docs)
+      # Avoids JamesIves worktree conflict when deploying onto the same branch.
+      - name: Publish dist to docs on main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          rm -rf docs
+          mkdir -p docs
+          cp -a dist/. docs/
+
+          git add -f docs
+          if git diff --staged --quiet; then
+            echo "No docs changes to publish"
+            exit 0
+          fi
+
+          git commit -m "Deploy production build to docs [skip ci]"
+          git push origin HEAD:main
