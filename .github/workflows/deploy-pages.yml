@@ -7,22 +7,24 @@ on:
 
 # Node 24 action runtimes — see
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+#
+# REQUIRED (one-time): Repo Settings → Pages → Source = "GitHub Actions"
+# (not "Deploy from a branch"). Branch/root serves Vite source and blanks the site.
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          # Need full history / writeable main for docs publish
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -37,32 +39,29 @@ jobs:
           npm run build
           touch dist/.nojekyll
 
-      - name: Verify production build (not Vite source HTML)
+      - name: Verify production build
         run: |
           test -f dist/index.html
           if grep -q '/src/main.jsx' dist/index.html; then
-            echo "dist/index.html still points at /src/main.jsx — vite build failed"
+            echo "::error::dist still references /src/main.jsx — not a Vite production build"
             exit 1
           fi
           grep -q '/performance-rag/assets/' dist/index.html
+          test -d dist/assets
+          ls dist/assets/*.js >/dev/null
 
-      # Publish built site into main:/docs (Pages → branch main → folder /docs)
-      # Avoids JamesIves worktree conflict when deploying onto the same branch.
-      - name: Publish dist to docs on main
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
 
-          rm -rf docs
-          mkdir -p docs
-          cp -a dist/. docs/
-
-          git add -f docs
-          if git diff --staged --quiet; then
-            echo "No docs changes to publish"
-            exit 0
-          fi
-
-          git commit -m "Deploy production build to docs [skip ci]"
-          git push origin HEAD:main
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
