@@ -4,20 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    {
-      name: 'strip-pages-redirect-from-build',
-      transformIndexHtml(html) {
-        return html.replace(
-          /<script>\s*\/\/ GitHub Pages[\s\S]*?<\/script>\s*/m,
-          '',
-        )
-      },
-    },
-  ],
-  // Relative base so assets resolve under /docs/ or Actions site root
+  plugins: [react(), tailwindcss()],
+  // Relative base so assets resolve under Pages root or /docs/
   base: './',
   test: {
     environment: 'node',

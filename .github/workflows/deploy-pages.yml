@@ -43,10 +43,9 @@ jobs:
             exit 1
           fi
           test -d dist/assets
-          # Relative base → ./assets/...
           grep -E 'src="\./assets/|href="\./assets/' dist/index.html
 
-      - name: Publish dist to docs on main
+      - name: Publish production build for GitHub Pages
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -54,15 +53,28 @@ jobs:
           git fetch origin main
           git checkout -B main origin/main
 
+          # /docs/ (legacy + Pages "folder: /docs")
           rm -rf docs
           mkdir -p docs
           cp -a dist/. docs/
 
-          git add -f docs index.html vite.config.js
+          # Repo root (Pages "folder: / (root)") — must NOT serve Vite source
+          rm -rf assets
+          cp -a dist/assets assets
+          cp -f dist/index.html index.html
+          cp -f dist/favicon.svg favicon.svg
+          cp -f dist/.nojekyll .nojekyll
+          mkdir -p sample
+          cp -f dist/sample/sample_team_roster.csv sample/sample_team_roster.csv
+          # Keep Vite entry template for local npm run dev/build
+          test -f index.vite.html
+
+          git add -f docs assets index.html index.vite.html favicon.svg .nojekyll sample/sample_team_roster.csv \
+            package.json scripts/syncIndex.mjs vite.config.js
           if git diff --staged --quiet; then
-            echo "No docs changes to publish"
+            echo "No Pages publish changes"
           else
-            git commit -m "Deploy production build to docs [skip ci]"
+            git commit -m "Deploy production build for GitHub Pages [skip ci]"
             git push origin main
           fi
 

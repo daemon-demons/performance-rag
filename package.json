@@ -4,12 +4,15 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/syncIndex.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/syncIndex.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "npm run build && npx gh-pages -d dist",
     "generate:sample": "node scripts/generateSampleRoster.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync:index": "node scripts/syncIndex.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.525.0",
