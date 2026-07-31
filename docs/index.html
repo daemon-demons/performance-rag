@@ -16,16 +16,5 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // GitHub Pages (branch/root) serves this Vite source file → blank app.
-      // Redirect to /docs/ where CI publishes the production build.
-      (function () {
-        if (!/\.github\.io$/i.test(location.hostname)) return
-        var s = document.querySelector('script[src*="/src/main.jsx"]')
-        if (!s) return
-        var base = location.pathname.replace(/\/?$/, '/')
-        location.replace(base + 'docs/' + location.search + location.hash)
-      })()
-    </script>
-  </body>
+    </body>
 </html>

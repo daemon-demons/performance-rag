@@ -14,17 +14,16 @@
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
     <script>
-      // GitHub Pages (branch/root) serves this Vite source file → blank app.
-      // Redirect to /docs/ where CI publishes the production build.
+      // GitHub Pages branch/root serves Vite source → blank. Go to /docs/ build.
       (function () {
         if (!/\.github\.io$/i.test(location.hostname)) return
-        var s = document.querySelector('script[src*="/src/main.jsx"]')
-        if (!s) return
+        if (!document.querySelector('script[src*="/src/main.jsx"]')) return
+        if (/\/docs(\/|$)/.test(location.pathname)) return
         var base = location.pathname.replace(/\/?$/, '/')
         location.replace(base + 'docs/' + location.search + location.hash)
       })()
     </script>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
