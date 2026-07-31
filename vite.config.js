@@ -5,7 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/performance-rag/',
+  // Relative base so assets resolve under /docs/ or Actions site root
+  base: './',
   test: {
     environment: 'node',
     include: ['src/**/*.test.js'],

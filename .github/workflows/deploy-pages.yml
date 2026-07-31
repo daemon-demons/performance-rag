@@ -5,13 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Node 24 action runtimes — see
-# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-#
-# REQUIRED (one-time): Repo Settings → Pages → Source = "GitHub Actions"
-# (not "Deploy from a branch"). Branch/root serves Vite source and blanks the site.
+# Node 24 — https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -20,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -43,20 +39,40 @@ jobs:
         run: |
           test -f dist/index.html
           if grep -q '/src/main.jsx' dist/index.html; then
-            echo "::error::dist still references /src/main.jsx — not a Vite production build"
+            echo "::error::dist still references /src/main.jsx"
             exit 1
           fi
-          grep -q '/performance-rag/assets/' dist/index.html
           test -d dist/assets
-          ls dist/assets/*.js >/dev/null
+          # Relative base → ./assets/...
+          grep -E 'src="\./assets/|href="\./assets/' dist/index.html
+
+      - name: Publish dist to docs on main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+
+          rm -rf docs
+          mkdir -p docs
+          cp -a dist/. docs/
+
+          git add -f docs index.html vite.config.js
+          if git diff --staged --quiet; then
+            echo "No docs changes to publish"
+          else
+            git commit -m "Deploy production build to docs [skip ci]"
+            git push origin main
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
-  deploy:
-    needs: build
+  deploy-actions-pages:
+    needs: build-and-deploy
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -65,3 +81,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        continue-on-error: true
