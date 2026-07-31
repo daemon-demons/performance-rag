@@ -9,15 +9,13 @@ on:
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,6 +32,7 @@ jobs:
           npm ci
           npm test
           npm run build
+          touch dist/.nojekyll
 
       - name: Verify production build (not Vite source HTML)
         run: |
@@ -44,27 +43,13 @@ jobs:
           fi
           grep -q '/performance-rag/assets/' dist/index.html
 
-      # Publishes built assets to the gh-pages branch (works when Pages source = branch gh-pages)
-      - name: Deploy to gh-pages branch
+      # Publish built site into main:/docs (GitHub Pages → branch main → folder /docs)
+      - name: Deploy dist to main/docs
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
-          branch: gh-pages
+          branch: main
+          target-folder: docs
           clean: true
           single-commit: true
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+          commit-message: 'Deploy production build to docs [skip ci]'
