@@ -13,7 +13,7 @@ const TABS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/org', label: 'Org Chart', icon: Network },
   { to: '/roster', label: 'Team Roster', icon: Users },
-  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/analytics', label: 'Deep dive', icon: BarChart3 },
 ]
 
 export default function Header() {
@@ -27,7 +27,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-tessolve-navy shadow-md shadow-tessolve-navy/20 ring-1 ring-tessolve-blue/40 transition hover:ring-tessolve-orange/50">
             <span className="font-display text-[10px] font-bold tracking-wide text-tessolve-orange">
@@ -76,7 +76,7 @@ export default function Header() {
       </div>
 
       <div className="border-t border-slate-100/80">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-[1600px] px-4 py-2 sm:px-6">
           <FilterBar />
         </div>
       </div>

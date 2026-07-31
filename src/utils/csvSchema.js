@@ -5,6 +5,9 @@ export const REQUIRED_COLUMNS = [
   'Mentor_Name',
   'Client',
   'Project_Type',
+  'Allocation_Status',
+  'Billing_Months_Remaining',
+  'Upcoming_Commitment',
   'SMT_Versions_Known',
   'Other_Testers',
   'SC_Experience',
@@ -29,6 +32,7 @@ export const REQUIRED_COLUMNS = [
 export const NUMERIC_SKILL_COLUMNS = [
   'TML_Scripting',
   'CS_ES_HVM_Releases',
+  'Billing_Months_Remaining',
 ]
 
 export const ENUM_COLUMNS = {
@@ -38,6 +42,7 @@ export const ENUM_COLUMNS = {
   Product_Focus: ['NPI', 'Sustaining', 'Both'],
   IP_Debug_Level: ['None', 'Basic', 'Advanced'],
   Client_Demand: ['Low', 'Medium', 'High'],
+  Allocation_Status: ['Project', 'Bench'],
 }
 
 export const BOOLEAN_COLUMNS = [
@@ -62,6 +67,7 @@ export const META_COLUMNS = [
   'Mentor_Name',
   'Client',
   'Project_Type',
+  'Upcoming_Commitment',
 ]
 
 export const SKILL_CHART_KEYS = [
@@ -72,3 +78,10 @@ export const SKILL_CHART_KEYS = [
   { key: 'Delivery_Score', label: 'Delivery' },
   { key: 'Depth_Score', label: 'Depth' },
 ]
+
+/** Human labels for RAG status */
+export const RAG_LABELS = {
+  GREEN: 'Ready',
+  AMBER: 'Watch',
+  RED: 'At risk',
+}

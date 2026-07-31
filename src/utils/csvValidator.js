@@ -73,6 +73,13 @@ function parseEnum(col, value) {
     if (l.includes('low')) return 'Low'
     return 'Medium'
   }
+  if (col === 'Allocation_Status') {
+    const l = raw.toLowerCase()
+    if (l.includes('bench') || l.includes('idle') || l.includes('available')) {
+      return 'Bench'
+    }
+    return 'Project'
+  }
   return allowed[0] || raw
 }
 

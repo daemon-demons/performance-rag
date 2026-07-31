@@ -130,10 +130,21 @@ export default function WelcomeScreen() {
           </span>
         </h1>
         <p className="mt-4 max-w-xl text-base text-slate-300 sm:text-lg">
-          Enabling semiconductor test excellence — load your team roster to
-          evaluate skills, responsibilities, and client risk entirely on this
-          device.
+          Three steps: load your team CSV, review the Dashboard for readiness
+          and billing, then click a person to act — all on this device.
         </p>
+
+        <ol className="mt-6 flex flex-wrap gap-3 text-xs text-slate-300">
+          <li className="rounded-full border border-white/20 bg-white/5 px-3 py-1">
+            1. Load CSV
+          </li>
+          <li className="rounded-full border border-white/20 bg-white/5 px-3 py-1">
+            2. Review Dashboard
+          </li>
+          <li className="rounded-full border border-white/20 bg-white/5 px-3 py-1">
+            3. Click a person to act
+          </li>
+        </ol>
 
         <div className="mt-10">
           <DropzoneUpload onFile={(f) => handleFile(f)} disabled={loading} />

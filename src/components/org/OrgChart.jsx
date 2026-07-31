@@ -38,13 +38,14 @@ export default function OrgChart() {
   }, [orgEmployees, filters.person])
 
   return (
-    <div className="mx-auto max-w-[100vw] px-4 pb-10 sm:px-6">
+    <div className="page-shell pb-10">
       <div className="mb-4">
         <h2 className="font-display text-xl font-semibold text-tessolve-navy">
           Org Chart
         </h2>
         <p className="text-sm text-slate-500">
-          {orgEmployees.length} shown · drag a card onto a manager to reassign
+          {orgEmployees.length} shown · drag the grip handle onto a manager to
+          reassign · click a card to open profile
         </p>
       </div>
 

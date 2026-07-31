@@ -38,11 +38,22 @@ export function AppProvider({ children }) {
     role: 'All',
     rag: 'All',
     person: 'All',
+    allocation: 'All',
   })
 
   const syncRaw = useCallback((next) => {
     rawRef.current = next
     setRawEmployees(next)
+  }, [])
+
+  const clearFilters = useCallback(() => {
+    setFilters({
+      client: 'All',
+      role: 'All',
+      rag: 'All',
+      person: 'All',
+      allocation: 'All',
+    })
   }, [])
 
   const loadEmployees = useCallback(
@@ -54,7 +65,13 @@ export function AppProvider({ children }) {
       setFileHandle(handle)
       setPersistStatus('')
       setReorgPreview(null)
-      setFilters({ client: 'All', role: 'All', rag: 'All', person: 'All' })
+      setFilters({
+        client: 'All',
+        role: 'All',
+        rag: 'All',
+        person: 'All',
+        allocation: 'All',
+      })
       setSelectedEmployeeId(null)
     },
     [syncRaw],
@@ -66,7 +83,13 @@ export function AppProvider({ children }) {
     setFileHandle(null)
     setPersistStatus('')
     setReorgPreview(null)
-    setFilters({ client: 'All', role: 'All', rag: 'All', person: 'All' })
+    setFilters({
+      client: 'All',
+      role: 'All',
+      rag: 'All',
+      person: 'All',
+      allocation: 'All',
+    })
     setSelectedEmployeeId(null)
   }, [syncRaw])
 
@@ -209,11 +232,6 @@ export function AppProvider({ children }) {
     [rawEmployees],
   )
 
-  const clientRisk = useMemo(
-    () => aggregateClientRisk(evaluated),
-    [evaluated],
-  )
-
   const filterOptions = useMemo(() => {
     const clients = [
       ...new Set(evaluated.map((e) => e.Client).filter(Boolean)),
@@ -233,9 +251,18 @@ export function AppProvider({ children }) {
       if (filters.client !== 'All' && e.Client !== filters.client) return false
       if (filters.role !== 'All' && e.Role !== filters.role) return false
       if (filters.rag !== 'All' && e.ragStatus !== filters.rag) return false
+      if (filters.allocation !== 'All') {
+        const status = e.Allocation_Status || 'Project'
+        if (status !== filters.allocation) return false
+      }
       return true
     })
   }, [evaluated, filters])
+
+  const clientRisk = useMemo(
+    () => aggregateClientRisk(filteredEmployees),
+    [filteredEmployees],
+  )
 
   const orgEmployees = useMemo(() => {
     if (filters.person && filters.person !== 'All') {
@@ -250,19 +277,50 @@ export function AppProvider({ children }) {
   }, [evaluated, selectedEmployeeId])
 
   const kpis = useMemo(() => {
-    const total = evaluated.length
-    const green = evaluated.filter(
+    const pool = filteredEmployees
+    const total = pool.length
+    const green = pool.filter(
       (e) => !e.isDeparted && e.ragStatus === 'GREEN',
     ).length
-    const amber = evaluated.filter(
+    const amber = pool.filter(
       (e) => !e.isDeparted && e.ragStatus === 'AMBER',
     ).length
-    const red = evaluated.filter(
+    const red = pool.filter(
       (e) => !e.isDeparted && e.ragStatus === 'RED',
     ).length
-    const departed = evaluated.filter((e) => e.isDeparted).length
-    return { total, green, amber, red, departed }
-  }, [evaluated])
+    const departed = pool.filter((e) => e.isDeparted).length
+    const project = pool.filter(
+      (e) => !e.isDeparted && (e.Allocation_Status || 'Project') === 'Project',
+    ).length
+    const bench = pool.filter(
+      (e) => !e.isDeparted && e.Allocation_Status === 'Bench',
+    ).length
+    return { total, green, amber, red, departed, project, bench }
+  }, [filteredEmployees])
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0
+    if (filters.client !== 'All') n += 1
+    if (filters.role !== 'All') n += 1
+    if (filters.rag !== 'All') n += 1
+    if (filters.allocation !== 'All') n += 1
+    if (filters.person && filters.person !== 'All') n += 1
+    return n
+  }, [filters])
+
+  const selectEmployeeByName = useCallback(
+    (name) => {
+      const hit = evaluated.find(
+        (e) =>
+          String(e.Employee_Name).trim().toLowerCase() ===
+          String(name || '')
+            .trim()
+            .toLowerCase(),
+      )
+      if (hit) setSelectedEmployeeId(hit.id)
+    },
+    [evaluated],
+  )
 
   const value = {
     hasData: Boolean(rawEmployees?.length),
@@ -272,6 +330,8 @@ export function AppProvider({ children }) {
     orgEmployees,
     filters,
     setFilters,
+    clearFilters,
+    activeFilterCount,
     filterOptions,
     loadEmployees,
     clearData,
@@ -289,6 +349,7 @@ export function AppProvider({ children }) {
     setReorgPreview,
     selectedEmployeeId,
     setSelectedEmployeeId,
+    selectEmployeeByName,
     selectedEmployee,
     kpis,
     clientRisk,

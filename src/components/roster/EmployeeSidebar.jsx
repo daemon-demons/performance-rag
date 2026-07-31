@@ -41,7 +41,10 @@ const EDITABLE_KEYS = [
   'Mentor_Name',
   'Client',
   'Project_Type',
-  ...Object.keys(ENUM_COLUMNS),
+  'Allocation_Status',
+  'Billing_Months_Remaining',
+  'Upcoming_Commitment',
+  ...Object.keys(ENUM_COLUMNS).filter((k) => k !== 'Allocation_Status'),
   'TML_Scripting',
   'CS_ES_HVM_Releases',
   ...BOOLEAN_COLUMNS,
@@ -89,6 +92,7 @@ export default function EmployeeSidebar() {
     selectedEmployee,
     setSelectedEmployeeId,
     commitEmployeeUpdate,
+    selectEmployeeByName,
     filterOptions,
     employees,
     persistStatus,
@@ -181,7 +185,7 @@ export default function EmployeeSidebar() {
               {emp.Role} · {emp.Client}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <RagBadge status={emp.ragStatus} />
+              <RagBadge status={emp.ragStatus} human />
               {persistStatus && (
                 <span className="text-[11px] text-slate-400">{persistStatus}</span>
               )}
@@ -230,18 +234,30 @@ export default function EmployeeSidebar() {
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <Fact label="Overall" value={emp.Overall_Score} />
-            <Fact label="Platform" value={emp.Platform_Score} />
-            <Fact label="Delivery" value={emp.Delivery_Score} />
-            <Fact label="Depth" value={emp.Depth_Score} />
+          <div className="grid grid-cols-4 gap-1.5 text-center text-sm">
+            <div className="rounded-lg bg-slate-50 px-1 py-1.5">
+              <p className="text-[9px] text-slate-400 uppercase">Overall</p>
+              <p className="font-mono text-slate-800">{emp.Overall_Score}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 px-1 py-1.5">
+              <p className="text-[9px] text-slate-400 uppercase">Plat</p>
+              <p className="font-mono text-slate-800">{emp.Platform_Score}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 px-1 py-1.5">
+              <p className="text-[9px] text-slate-400 uppercase">Deliv</p>
+              <p className="font-mono text-slate-800">{emp.Delivery_Score}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 px-1 py-1.5">
+              <p className="text-[9px] text-slate-400 uppercase">Depth</p>
+              <p className="font-mono text-slate-800">{emp.Depth_Score}</p>
+            </div>
           </div>
 
           <div>
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
               Skill profile
             </h3>
-            <div className="h-56 w-full rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50 shadow-inner">
+            <div className="h-44 w-full rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50 shadow-inner">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                   <PolarGrid stroke="#e2e8f0" />
@@ -269,9 +285,53 @@ export default function EmployeeSidebar() {
                 Profile
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                <Fact label="Reports to" value={emp.Reports_To} />
-                <Fact label="Mentor" value={emp.Mentor_Name} />
+                <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-2.5 py-2">
+                  <p className="text-[10px] font-medium tracking-wide text-slate-400 uppercase">
+                    Reports to
+                  </p>
+                  {emp.Reports_To ? (
+                    <button
+                      type="button"
+                      className="mt-0.5 text-sm text-tessolve-blue hover:underline"
+                      onClick={() => selectEmployeeByName(emp.Reports_To)}
+                    >
+                      {emp.Reports_To}
+                    </button>
+                  ) : (
+                    <p className="mt-0.5 text-sm text-slate-800">—</p>
+                  )}
+                </div>
+                <div className="rounded-lg border border-slate-100 bg-slate-50/80 px-2.5 py-2">
+                  <p className="text-[10px] font-medium tracking-wide text-slate-400 uppercase">
+                    Mentor
+                  </p>
+                  {emp.Mentor_Name ? (
+                    <button
+                      type="button"
+                      className="mt-0.5 text-sm text-tessolve-blue hover:underline"
+                      onClick={() => selectEmployeeByName(emp.Mentor_Name)}
+                    >
+                      {emp.Mentor_Name}
+                    </button>
+                  ) : (
+                    <p className="mt-0.5 text-sm text-slate-800">—</p>
+                  )}
+                </div>
                 <Fact label="Project type" value={emp.Project_Type} />
+                <Fact
+                  label="Allocation"
+                  value={
+                    emp.Allocation_Status === 'Bench' ? 'On bench' : 'On project'
+                  }
+                />
+                <Fact
+                  label="Billing months left"
+                  value={emp.Billing_Months_Remaining ?? 0}
+                />
+                <Fact
+                  label="Upcoming commitment"
+                  value={emp.Upcoming_Commitment || '—'}
+                />
                 <Fact label="SMT" value={emp.SMT_Versions_Known} />
                 <Fact label="CONT" value={emp.CONT_Status} />
                 <Fact label="Product" value={emp.Product_Focus} />
@@ -421,7 +481,48 @@ export default function EmployeeSidebar() {
                 )}
               </label>
 
-              {Object.entries(ENUM_COLUMNS).map(([col, options]) => (
+              <label className="block text-xs text-slate-500">
+                Allocation
+                <select
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.Allocation_Status || 'Project'}
+                  onChange={(e) => setField('Allocation_Status', e.target.value)}
+                >
+                  <option value="Project">On project</option>
+                  <option value="Bench">On bench</option>
+                </select>
+              </label>
+
+              <label className="block text-xs text-slate-500">
+                Billing months remaining
+                <input
+                  type="number"
+                  min={0}
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.Billing_Months_Remaining ?? 0}
+                  onChange={(e) =>
+                    setField(
+                      'Billing_Months_Remaining',
+                      Number(e.target.value) || 0,
+                    )
+                  }
+                />
+              </label>
+
+              <label className="block text-xs text-slate-500">
+                Upcoming commitment
+                <input
+                  className={`mt-1 ${fieldClass}`}
+                  value={d.Upcoming_Commitment || ''}
+                  onChange={(e) =>
+                    setField('Upcoming_Commitment', e.target.value)
+                  }
+                />
+              </label>
+
+              {Object.entries(ENUM_COLUMNS)
+                .filter(([col]) => col !== 'Allocation_Status')
+                .map(([col, options]) => (
                 <label key={col} className="block text-xs text-slate-500">
                   {col.replace(/_/g, ' ')}
                   <select

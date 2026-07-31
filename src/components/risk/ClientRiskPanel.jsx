@@ -9,9 +9,12 @@ export default function ClientRiskPanel({ clients, spofAlerts }) {
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 shrink-0 text-rag-amber" size={16} />
             <div>
-              <h3 className="text-sm text-amber-900">SPOF / client risk</h3>
+              <h3 className="text-sm text-amber-900">
+                Single point of failure / client risk
+              </h3>
               <p className="mt-1 text-sm text-amber-800">
-                Clients with fewer than 2 people at SMT 93k (8/Both) or Platform ≥ 8:
+                Clients with fewer than 2 strong people (SMT 8/Both or Platform ≥
+                8) — a single departure could leave you exposed:
               </p>
               <ul className="mt-2 space-y-1 text-sm text-amber-900">
                 {spofAlerts.map((c) => (

@@ -6,6 +6,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Rajmohan', Role: 'Manager', Reports_To: '', Mentor_Name: '',
     Client: 'Client Q', Project_Type: 'Multi-Client Oversight',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 12, Upcoming_Commitment: 'Multi-client Q3 review',
     SMT_Versions_Known: 'Both', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Advanced', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 8, CS_ES_HVM_Releases: 9,
@@ -16,6 +17,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Bhanu', Role: 'Lead', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client Q', Project_Type: 'HVM Support',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 8, Upcoming_Commitment: 'Client Q HVM ramp',
     SMT_Versions_Known: '8', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Advanced', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 8, CS_ES_HVM_Releases: 8,
@@ -26,6 +28,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Mari', Role: 'Lead', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client A', Project_Type: 'NPI',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 6, Upcoming_Commitment: 'Client A NPI tapeout',
     SMT_Versions_Known: '8', Other_Testers: true, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'NPI', IP_Debug_Level: 'Advanced', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 7,
@@ -36,6 +39,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sriram', Role: 'Lead', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client G', Project_Type: 'Sustaining',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 4, Upcoming_Commitment: 'Client G sustaining',
     SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: false, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
@@ -46,6 +50,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Siva', Role: 'Sr Eng 2', Reports_To: 'Rajmohan', Mentor_Name: 'Rajmohan',
     Client: 'Client A', Project_Type: 'Platform Mentoring',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 9, Upcoming_Commitment: 'Platform mentoring pool',
     SMT_Versions_Known: 'Both', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Advanced', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 9, CS_ES_HVM_Releases: 8,
@@ -56,6 +61,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Hussain', Role: 'Sr Eng 1', Reports_To: 'Bhanu', Mentor_Name: 'Bhanu',
     Client: 'Client Q', Project_Type: 'WS',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 5, Upcoming_Commitment: 'Client Q WS bringup',
     SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'High',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
@@ -66,6 +72,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sneha', Role: 'Sr Eng 1', Reports_To: 'Bhanu', Mentor_Name: 'Siva',
     Client: 'Client Q', Project_Type: 'FT',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 3, Upcoming_Commitment: 'Client Q FT debug',
     SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: false, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'NPI', IP_Debug_Level: 'Advanced', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 6, CS_ES_HVM_Releases: 7,
@@ -76,6 +83,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Jayaram', Role: 'Sr Eng 1', Reports_To: 'Bhanu', Mentor_Name: 'Bhanu',
     Client: 'Client A', Project_Type: 'DBD',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 2, Upcoming_Commitment: 'Client A DBD',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: false, TML_Scripting: 6, CS_ES_HVM_Releases: 5,
@@ -86,6 +94,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sunil', Role: 'Sr Eng 1', Reports_To: 'Mari', Mentor_Name: 'Mari',
     Client: 'Client A', Project_Type: 'NPI',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 7, Upcoming_Commitment: 'Client A NPI tapeout',
     SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Bringup',
     DBD_Bringup: false, Product_Focus: 'NPI', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
@@ -96,6 +105,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Kevin', Role: 'Sr Eng 1', Reports_To: 'Mari', Mentor_Name: 'Mari',
     Client: 'Client A', Project_Type: 'CONT',
+    Allocation_Status: 'Bench', Billing_Months_Remaining: 0, Upcoming_Commitment: 'Client A NPI tapeout',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: true, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Both', IP_Debug_Level: 'Basic', Client_Demand: 'Low',
     Project_Projections_Current: true, TML_Scripting: 5, CS_ES_HVM_Releases: 5,
@@ -106,6 +116,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Abarna', Role: 'Sr Eng 1', Reports_To: 'Sriram', Mentor_Name: 'Sriram',
     Client: 'Client G', Project_Type: 'Training / Sustaining',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 5, Upcoming_Commitment: 'Client G sustaining',
     SMT_Versions_Known: '7', Other_Testers: true, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Advanced', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 7, CS_ES_HVM_Releases: 6,
@@ -116,6 +127,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Abi', Role: 'Eng 1', Reports_To: 'Hussain', Mentor_Name: 'Siva',
     Client: 'Client Q', Project_Type: 'Lab Support',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 4, Upcoming_Commitment: 'Client Q WS bringup',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Debug',
     DBD_Bringup: false, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 5, CS_ES_HVM_Releases: 4,
@@ -126,6 +138,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Sai', Role: 'Eng 1', Reports_To: 'Sneha', Mentor_Name: 'Siva',
     Client: 'Client Q', Project_Type: 'Pattern Support',
+    Allocation_Status: 'Bench', Billing_Months_Remaining: 0, Upcoming_Commitment: 'Client Q FT debug',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: true, CONT_Status: 'No_Idea',
     DBD_Bringup: false, Product_Focus: 'NPI', IP_Debug_Level: 'None', Client_Demand: 'Low',
     Project_Projections_Current: false, TML_Scripting: 4, CS_ES_HVM_Releases: 3,
@@ -136,6 +149,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Santhosh', Role: 'Eng 2', Reports_To: 'Sriram', Mentor_Name: 'Sneha',
     Client: 'Client G', Project_Type: 'Scripting',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 6, Upcoming_Commitment: 'Client G sustaining',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: true, CONT_Status: 'Debug',
     DBD_Bringup: true, Product_Focus: 'Sustaining', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 8, CS_ES_HVM_Releases: 5,
@@ -146,6 +160,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Vijay', Role: 'Eng 2', Reports_To: 'Siva', Mentor_Name: 'Siva',
     Client: 'Client A', Project_Type: 'Bringup',
+    Allocation_Status: 'Project', Billing_Months_Remaining: 3, Upcoming_Commitment: 'Client A NPI tapeout',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: true, SOD_Handling: false, CONT_Status: 'Bringup',
     DBD_Bringup: true, Product_Focus: 'NPI', IP_Debug_Level: 'Basic', Client_Demand: 'Medium',
     Project_Projections_Current: true, TML_Scripting: 6, CS_ES_HVM_Releases: 5,
@@ -156,6 +171,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Ankush', Role: 'Eng 1', Reports_To: 'Sriram', Mentor_Name: 'Sriram',
     Client: 'Client G', Project_Type: 'Support',
+    Allocation_Status: 'Bench', Billing_Months_Remaining: 0, Upcoming_Commitment: 'Client G sustaining',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: false, CONT_Status: 'No_Idea',
     DBD_Bringup: false, Product_Focus: 'Sustaining', IP_Debug_Level: 'None', Client_Demand: 'Low',
     Project_Projections_Current: false, TML_Scripting: 3, CS_ES_HVM_Releases: 2,
@@ -166,6 +182,7 @@ const SAMPLE_ROWS = [
   {
     Employee_Name: 'Bhavya', Role: 'Intern', Reports_To: 'Sriram', Mentor_Name: 'Abarna',
     Client: 'Client G', Project_Type: 'Learning Track',
+    Allocation_Status: 'Bench', Billing_Months_Remaining: 0, Upcoming_Commitment: '',
     SMT_Versions_Known: '7', Other_Testers: false, SC_Experience: false, SOD_Handling: false, CONT_Status: 'No_Idea',
     DBD_Bringup: false, Product_Focus: 'NPI', IP_Debug_Level: 'None', Client_Demand: 'Low',
     Project_Projections_Current: false, TML_Scripting: 2, CS_ES_HVM_Releases: 1,

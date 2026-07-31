@@ -129,7 +129,7 @@ export default function AnalyticsView() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 pb-12 sm:px-6">
+    <div className="page-shell space-y-6 pb-12">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-semibold text-tessolve-navy">

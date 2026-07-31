@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Minus, Plus } from 'lucide-react'
+import { GripVertical, Minus, Plus } from 'lucide-react'
 import RagBadge from '../common/RagBadge'
 import { useApp } from '../../context/AppContext'
 import { normalizeRole } from '../../utils/ragEvaluator'
@@ -20,7 +20,12 @@ function headerClass(role) {
 }
 
 export default function OrgNode({ node }) {
-  const { toggleDeparted, reassignReport, setSelectedEmployeeId } = useApp()
+  const {
+    toggleDeparted,
+    reassignReport,
+    setSelectedEmployeeId,
+    setFilters,
+  } = useApp()
   const [expanded, setExpanded] = useState(true)
   const [dragging, setDragging] = useState(false)
   const [dropOver, setDropOver] = useState(false)
@@ -55,22 +60,30 @@ export default function OrgNode({ node }) {
     <li className="org-branch">
       <div className="org-card-wrap">
         <div
-          draggable
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
-          className={`relative w-[9.5rem] cursor-grab overflow-hidden rounded-xl border bg-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg active:cursor-grabbing sm:w-40 ${
+          onClick={() => setSelectedEmployeeId(node.id)}
+          className={`relative w-36 cursor-pointer overflow-hidden rounded-xl border bg-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg sm:w-40 ${
             dropOver
               ? 'border-tessolve-blue ring-2 ring-tessolve-blue/40'
               : 'border-slate-200/90'
           } ${dragging ? 'opacity-40' : ''} ${node.isDeparted ? 'opacity-50' : ''}`}
         >
           <div
-            className={`flex items-center justify-between gap-1 px-2 py-1.5 text-[10px] font-semibold tracking-wide text-white uppercase ${headerClass(node.Role)}`}
+            className={`flex items-center justify-between gap-1 px-1.5 py-1 text-[10px] font-semibold tracking-wide text-white uppercase ${headerClass(node.Role)}`}
           >
-            <span className="truncate">{node.Role}</span>
+            <span
+              draggable
+              title="Drag to reassign"
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex cursor-grab items-center rounded bg-white/15 p-0.5 active:cursor-grabbing"
+            >
+              <GripVertical size={12} />
+            </span>
+            <span className="min-w-0 flex-1 truncate">{node.Role}</span>
             {hasChildren && (
               <button
                 type="button"
@@ -85,20 +98,29 @@ export default function OrgNode({ node }) {
               </button>
             )}
           </div>
-          <div className="space-y-1.5 px-2.5 py-2.5 text-center">
-            <button
-              type="button"
-              onClick={() => setSelectedEmployeeId(node.id)}
-              className="font-display w-full truncate text-sm font-semibold text-slate-900 hover:text-tessolve-blue hover:underline"
-            >
+          <div className="space-y-1 px-2 py-2 text-center">
+            <p className="font-display truncate text-sm font-semibold text-slate-900">
               {node.Employee_Name}
-            </button>
-            <div className="flex flex-wrap items-center justify-center gap-1">
-              <RagBadge status={node.ragStatus} small />
+            </p>
+            <div
+              className="flex flex-wrap items-center justify-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <RagBadge
+                status={node.ragStatus}
+                small
+                human
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    rag: f.rag === node.ragStatus ? 'All' : node.ragStatus,
+                  }))
+                }
+              />
             </div>
             <p className="truncate text-[10px] text-slate-400">{node.Client}</p>
             <label
-              className="flex cursor-pointer items-center justify-center gap-1.5 text-[10px] text-slate-500"
+              className="flex cursor-pointer items-center justify-center gap-1 text-[10px] text-slate-500"
               onClick={(e) => e.stopPropagation()}
             >
               <input
