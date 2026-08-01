@@ -1,0 +1,45 @@
+---
+description: Lock project structure, GitHub Pages deploy invariants, and build gates
+alwaysApply: true
+---
+
+# Project structure & build lock
+
+Client-side Vite + React SPA. Deploy target: GitHub Pages at `/performance-rag/`.
+
+## Locked layout
+
+| Path | Role |
+|------|------|
+| `index.vite.html` | **Source of truth** for Vite entry (`/src/main.jsx`). Never delete. |
+| `index.html` | May be production HTML on `main` (Pages). Local `npm run dev` / `build` restores it via `scripts/syncIndex.mjs`. |
+| `src/` | App code only (`components/`, `context/`, `pages/`, `utils/`). |
+| `public/` | Static files copied into `dist` (incl. `sample/`, `.nojekyll`). |
+| `docs/`, root `assets/` | **Generated** Pages publish output — do not hand-edit; CI/`npm run build` owns them. |
+| `.github/workflows/deploy-pages.yml` | Sole deploy path: test → build → publish root + `docs/`. |
+
+Do not invent parallel entrypoints, alternate routers (keep `HashRouter`), or a second deploy workflow unless the user asks.
+
+## Pages / Vite invariants (blank-page bugs)
+
+- Keep `vite.config.js` `base: './'` (relative assets). Do **not** switch to absolute `/performance-rag/` without a deliberate Pages plan.
+- Production HTML must reference `./assets/...` — never `/src/main.jsx`.
+- After HTML/entry/deploy changes, ensure `index.vite.html` still has the Vite module script for local dev.
+- Do not remove root or `docs/.nojekyll` publish steps.
+
+## Build must stay green
+
+Before finishing feature work that touches logic, schema, or tooling:
+
+1. `npm test` (Vitest under `src/**/*.test.js`)
+2. `npm run build` (must succeed; `dist/index.html` must not contain `main.jsx`)
+
+If tests or build fail, fix before claiming done. Prefer updating/adding unit tests next to engines (`portfolioEngine`, `analyticsEngine`, `csvSchema`) when changing those modules.
+
+## CSV / sample schema
+
+Roster columns and enums live in `src/utils/csvSchema.js`. Changing schema requires updating `public/sample/` (and `sample/` mirror), generators under `scripts/`, and related tests — do not leave samples or parsers out of sync.
+
+## Git
+
+Follow `no-auto-push.mdc`: commit/push only when the user explicitly asks.
