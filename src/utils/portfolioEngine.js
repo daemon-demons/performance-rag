@@ -1,6 +1,7 @@
 /**
  * Portfolio aggregations for the manager Dashboard.
  */
+import { isHighSkill } from './scoreMaps'
 
 function activePeople(employees) {
   return (employees || []).filter((e) => !e.isDeparted)
@@ -130,10 +131,6 @@ export function listCommitments(employees) {
   return [...set].sort((a, b) => a.localeCompare(b))
 }
 
-function highSkill(e) {
-  return (e.Max_V93k ?? 0) >= 8 || (e.Platform_Score ?? 0) >= 8
-}
-
 /**
  * Rule-based SWOT for an upcoming commitment name.
  */
@@ -155,7 +152,7 @@ export function buildCommitmentSwot(employees, commitment) {
   const risks = []
 
   for (const e of tagged) {
-    if (e.ragStatus === 'GREEN' && highSkill(e)) {
+    if (e.ragStatus === 'GREEN' && isHighSkill(e)) {
       strengths.push({
         id: e.id,
         text: `${e.Employee_Name} is Ready with strong platform skills`,
@@ -184,7 +181,7 @@ export function buildCommitmentSwot(employees, commitment) {
     const match =
       (needSc && e.SC_Experience) ||
       (needSod && e.SOD_Handling) ||
-      highSkill(e) ||
+      isHighSkill(e) ||
       (e.CONT_Status === 'Bringup')
     if (match) {
       opportunities.push({
@@ -196,7 +193,7 @@ export function buildCommitmentSwot(employees, commitment) {
 
   for (const client of clients) {
     const onClient = active.filter((e) => e.Client === client && isProject(e))
-    const skilled = onClient.filter(highSkill)
+    const skilled = onClient.filter(isHighSkill)
     if (skilled.length < 2) {
       risks.push({
         id: `spof-${client}`,

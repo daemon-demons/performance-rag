@@ -1,11 +1,16 @@
 import Papa from 'papaparse'
-import { REQUIRED_COLUMNS, BOOLEAN_COLUMNS } from './csvSchema'
+import {
+  REQUIRED_COLUMNS,
+  BOOLEAN_COLUMNS,
+  OPTIONAL_BOOLEAN_COLUMNS,
+  CSV_OUTPUT_COLUMNS,
+} from './csvSchema'
 
 function boolToCsv(value) {
   return value ? 'TRUE' : 'FALSE'
 }
 
-/** Serialize raw employee records back to CSV text (schema columns only). */
+/** Serialize raw employee records back to CSV text (schema + Is_Departed). */
 export function employeesToCsv(employees) {
   const data = (employees || []).map((row) => {
     const out = {}
@@ -19,9 +24,16 @@ export function employeesToCsv(employees) {
         out[col] = val
       }
     }
+    for (const col of OPTIONAL_BOOLEAN_COLUMNS) {
+      if (col === 'Is_Departed') {
+        out[col] = boolToCsv(Boolean(row.isDeparted))
+      } else {
+        out[col] = boolToCsv(Boolean(row[col]))
+      }
+    }
     return out
   })
-  return Papa.unparse(data, { columns: REQUIRED_COLUMNS })
+  return Papa.unparse(data, { columns: CSV_OUTPUT_COLUMNS })
 }
 
 export function downloadCsvText(csv, filename = 'team_roster.csv') {
@@ -60,7 +72,7 @@ export async function openCsvWithHandle() {
 
 /**
  * Write roster to linked file handle, or download as fallback.
- * @returns {{ method: 'file' | 'download', filename?: string }}
+ * @returns {{ method: 'file' | 'download', filename?: string, error?: string }}
  */
 export async function persistRoster(employees, fileHandle) {
   const csv = employeesToCsv(employees)
@@ -70,8 +82,15 @@ export async function persistRoster(employees, fileHandle) {
       await writable.write(csv)
       await writable.close()
       return { method: 'file' }
-    } catch {
-      // fall through to download
+    } catch (err) {
+      const error =
+        err instanceof Error ? err.message : 'Could not write linked file'
+      downloadCsvText(csv, 'team_roster.csv')
+      return {
+        method: 'download',
+        filename: 'team_roster.csv',
+        error,
+      }
     }
   }
   downloadCsvText(csv, 'team_roster.csv')

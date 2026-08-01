@@ -59,9 +59,9 @@ export default function ClientRiskPanel({ clients, spofAlerts }) {
                 </td>
                 <td className="px-3 py-2.5">
                   {c.isSpof ? (
-                    <RagBadge status="AMBER" small />
+                    <RagBadge status="AMBER" small human />
                   ) : (
-                    <RagBadge status="GREEN" small />
+                    <RagBadge status="GREEN" small human />
                   )}
                 </td>
               </tr>

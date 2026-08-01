@@ -10,6 +10,7 @@ Client-side React SPA for semiconductor test-engineering performance RAG evaluat
 npm install
 npm run dev      # local server (restores Vite entry from index.vite.html)
 npm test         # Vitest
+npm run lint     # ESLint
 npm run build    # production → dist/
 ```
 

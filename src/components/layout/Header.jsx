@@ -47,22 +47,25 @@ export default function Header() {
         </div>
 
         <nav className="flex flex-wrap items-center gap-0.5 rounded-xl bg-slate-50 p-1">
-          {TABS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition ${
-                  isActive
-                    ? 'bg-white font-semibold text-tessolve-navy shadow-sm ring-1 ring-slate-200/80'
-                    : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'
-                }`
-              }
-            >
-              <Icon size={15} />
-              {label}
-            </NavLink>
-          ))}
+          {TABS.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition ${
+                    isActive
+                      ? 'bg-white font-semibold text-tessolve-navy shadow-sm ring-1 ring-slate-200/80'
+                      : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'
+                  }`
+                }
+              >
+                <Icon size={15} />
+                {tab.label}
+              </NavLink>
+            )
+          })}
         </nav>
 
         <button

@@ -6,6 +6,7 @@ import {
   META_COLUMNS,
   ENUM_COLUMNS,
 } from './csvSchema'
+import { findReportingCycles } from './orgTree'
 
 function parseBoolean(value) {
   if (typeof value === 'boolean') return value
@@ -34,7 +35,6 @@ function parseEnum(col, value) {
     }
     if (l === '8' || l === 'v8' || l === 'sm8') return '8'
     if (l === '7' || l === 'v7' || l === 'sm7') return '7'
-    // legacy numeric scores → nearest allowed
     const n = Number(raw)
     if (Number.isFinite(n)) {
       if (n >= 9) return 'Both'
@@ -48,7 +48,6 @@ function parseEnum(col, value) {
     (a) => a.toLowerCase() === raw.toLowerCase().replace(/\s+/g, '_'),
   )
   if (match) return match
-  // soft aliases
   if (col === 'CONT_Status') {
     const l = raw.toLowerCase()
     if (l.includes('bring')) return 'Bringup'
@@ -83,6 +82,32 @@ function parseEnum(col, value) {
   return allowed[0] || raw
 }
 
+function collectWarnings(employees) {
+  const warnings = []
+  const nameCounts = new Map()
+  for (const e of employees) {
+    const key = String(e.Employee_Name).trim().toLowerCase()
+    nameCounts.set(key, (nameCounts.get(key) || 0) + 1)
+  }
+  const dupes = [...nameCounts.entries()]
+    .filter(([, n]) => n > 1)
+    .map(([name]) => name)
+  if (dupes.length) {
+    warnings.push(
+      `Duplicate Employee_Name value(s): ${dupes.slice(0, 5).join(', ')}${
+        dupes.length > 5 ? '…' : ''
+      }. Hierarchy links use the last matching name.`,
+    )
+  }
+  const cycles = findReportingCycles(employees)
+  if (cycles.length) {
+    warnings.push(
+      `Reporting cycle(s) detected (${cycles.length}). Org walks will break cycles safely.`,
+    )
+  }
+  return warnings
+}
+
 /**
  * Validate and parse CSV text with PapaParse (browser-only).
  */
@@ -92,6 +117,7 @@ export function validateAndParseCsvText(text) {
       ok: false,
       errors: ['The uploaded file is empty or unreadable.'],
       missingColumns: [],
+      warnings: [],
     }
   }
 
@@ -109,6 +135,7 @@ export function validateAndParseCsvText(text) {
       ok: false,
       errors: ['CSV format appears invalid.', ...parseErrors],
       missingColumns: [],
+      warnings: [],
     }
   }
 
@@ -118,6 +145,7 @@ export function validateAndParseCsvText(text) {
       ok: false,
       errors: ['No header row found. Expected column names in the first row.'],
       missingColumns: [...REQUIRED_COLUMNS],
+      warnings: [],
     }
   }
 
@@ -130,9 +158,10 @@ export function validateAndParseCsvText(text) {
       ok: false,
       errors: [
         `Missing ${missingColumns.length} required column(s).`,
-        'Upload a CSV that matches the Tessolve team schema, or download a sample file.',
+        'Upload a CSV that matches the team schema, or download a sample file.',
       ],
       missingColumns,
+      warnings: [],
     }
   }
 
@@ -142,15 +171,20 @@ export function validateAndParseCsvText(text) {
       ok: false,
       errors: ['CSV has headers but no employee data rows.'],
       missingColumns: [],
+      warnings: [],
     }
   }
+
+  const hasDepartedCol = headers.includes('Is_Departed')
 
   const employees = rows
     .filter((row) => row.Employee_Name && String(row.Employee_Name).trim())
     .map((row, index) => {
       const employee = {
         id: `emp-${index}-${String(row.Employee_Name).trim()}`,
-        isDeparted: false,
+        isDeparted: hasDepartedCol
+          ? parseBoolean(row.Is_Departed)
+          : false,
       }
 
       for (const col of META_COLUMNS) {
@@ -177,10 +211,15 @@ export function validateAndParseCsvText(text) {
       ok: false,
       errors: ['No valid employee rows found (Employee_Name is required).'],
       missingColumns: [],
+      warnings: [],
     }
   }
 
-  return { ok: true, employees }
+  return {
+    ok: true,
+    employees,
+    warnings: collectWarnings(employees),
+  }
 }
 
 /**
@@ -193,6 +232,7 @@ export function validateAndParseCsv(file) {
         ok: false,
         errors: ['No file provided.'],
         missingColumns: [],
+        warnings: [],
       })
       return
     }
@@ -204,6 +244,7 @@ export function validateAndParseCsv(file) {
         ok: false,
         errors: ['Unable to read the selected file. Please try again.'],
         missingColumns: [],
+        warnings: [],
       })
     }
 

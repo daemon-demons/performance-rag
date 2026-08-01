@@ -1,3 +1,26 @@
+import {
+  CONT_MAP,
+  PRODUCT_MAP,
+  IP_MAP,
+  DEMAND_MAP,
+  SMT_MAP,
+} from './scoreMaps'
+
+/** Canonical role labels for edit dropdowns (order preserved). */
+export const ROLE_OPTIONS = [
+  'Intern',
+  'Eng 1',
+  'Eng 2',
+  'Sr Eng 1',
+  'Sr Eng 2',
+  'Lead',
+  'Sr Lead',
+  'Manager',
+  'Sr Manager',
+  'Staff',
+  'Manager/Staff',
+]
+
 /** Role baseline minimum Overall_Score for GREEN. null = N/A (Manager/Staff). */
 export const ROLE_BASELINES = {
   Intern: 4.0,
@@ -53,13 +76,6 @@ const RESPONSIBILITY_LABELS = {
   Manages_Multiple_Clients: 'Manages Multiple Clients',
 }
 
-const CONT_MAP = { Bringup: 8, Debug: 5, No_Idea: 1 }
-const PRODUCT_MAP = { NPI: 7, Sustaining: 6, Both: 9 }
-const IP_MAP = { None: 2, Basic: 5, Advanced: 9 }
-const DEMAND_MAP = { Low: 4, Medium: 6, High: 9 }
-/** Base 93k SM versions → score for Platform / Max_V93k */
-const SMT_MAP = { '7': 7, '8': 8, Both: 10 }
-
 const LEADER_ROLES = new Set([
   'Sr Eng 1',
   'Sr Eng 2',
@@ -89,7 +105,7 @@ export function normalizeRole(role) {
   if (!r) return r
   const lower = r.toLowerCase()
   if (lower === 'manager/staff' || lower === 'manager / staff') return 'Manager/Staff'
-  if (lower.includes('sr manager') || lower === 'sr manager') return 'Manager'
+  if (lower.includes('sr manager') || lower === 'senior manager') return 'Sr Manager'
   if (lower.includes('manager')) return 'Manager'
   if (lower.includes('staff')) return 'Staff'
   if (lower === 'intern') return 'Intern'
@@ -176,7 +192,6 @@ export function evaluateEmployee(employee) {
   // Max_V93k = mapped SMT strength (7 / 8 / Both)
   const Max_V93k = smt
   const Lab_Score = avg([cont, dbd])
-  const Process_Score = Depth_Score
 
   const requiredChecks = getRequiredChecks(employee.Role)
   const failedResponsibilities = requiredChecks
@@ -218,7 +233,6 @@ export function evaluateEmployee(employee) {
     Overall_Score: round2(Overall_Score),
     Max_V93k: round2(Max_V93k),
     Lab_Score: round2(Lab_Score),
-    Process_Score: round2(Process_Score),
     baseline,
     failedResponsibilities,
     checksMet,
@@ -275,14 +289,11 @@ export function applyHierarchyRag(employees) {
       if (reds >= 2 || reds / total > 0.5) {
         next = 'RED'
       } else if (reds >= 1) {
-        next = next === 'GREEN' ? 'AMBER' : next === 'AMBER' ? 'AMBER' : 'RED'
-        if (next === 'GREEN') next = 'AMBER'
+        // At least one RED report: never stay GREEN; RED stays RED
+        next = next === 'RED' ? 'RED' : 'AMBER'
       } else if (ambers >= 1 && next === 'GREEN') {
         next = 'AMBER'
       }
-
-      // If red present, never stay green
-      if (reds >= 1 && next === 'GREEN') next = 'AMBER'
 
       if (next !== emp.ragStatus) {
         emp.ragStatus = next

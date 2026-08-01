@@ -1,5 +1,6 @@
 /**
  * Build parent→children tree from employees using Reports_To.
+ * Cycle-safe: re-entrant nodes become roots instead of infinite nesting.
  */
 export function buildOrgTree(employees) {
   const nodes = employees.map((e) => ({
@@ -13,12 +14,15 @@ export function buildOrgTree(employees) {
   }
 
   const roots = []
+
   for (const node of nodes) {
+    const self = String(node.Employee_Name).trim().toLowerCase()
     const manager = String(node.Reports_To || '').trim().toLowerCase()
     if (
       manager &&
       byName.has(manager) &&
-      manager !== String(node.Employee_Name).trim().toLowerCase()
+      manager !== self &&
+      !wouldAttachCreateCycle(byName, self, manager)
     ) {
       byName.get(manager).children.push(node)
     } else {
@@ -26,12 +30,36 @@ export function buildOrgTree(employees) {
     }
   }
 
-  const sortRec = (list) => {
+  const sortRec = (list, stack = new Set()) => {
     list.sort((a, b) => a.Employee_Name.localeCompare(b.Employee_Name))
-    list.forEach((n) => sortRec(n.children))
+    for (const n of list) {
+      const key = String(n.Employee_Name).trim().toLowerCase()
+      if (stack.has(key)) {
+        n.children = []
+        continue
+      }
+      stack.add(key)
+      sortRec(n.children, stack)
+      stack.delete(key)
+    }
   }
   sortRec(roots)
   return roots
+}
+
+/** Walk manager chain; true if attaching child under manager closes a cycle. */
+function wouldAttachCreateCycle(byName, childKey, managerKey) {
+  let current = managerKey
+  const seen = new Set()
+  while (current) {
+    if (current === childKey) return true
+    if (seen.has(current)) return true
+    seen.add(current)
+    const node = byName.get(current)
+    if (!node) break
+    current = String(node.Reports_To || '').trim().toLowerCase()
+  }
+  return false
 }
 
 /** Collect employee + all descendants by Reports_To (raw or evaluated list). */
@@ -53,9 +81,12 @@ export function collectSubtree(employees, personName) {
   if (!root) return []
 
   const result = []
+  const visited = new Set()
   const visit = (emp) => {
-    result.push(emp)
     const key = String(emp.Employee_Name).trim().toLowerCase()
+    if (visited.has(key)) return
+    visited.add(key)
+    result.push(emp)
     const kids = byManager.get(key) || []
     kids.forEach(visit)
   }
@@ -77,7 +108,6 @@ export function wouldCreateCycle(employees, employeeId, managerName) {
     byName.set(String(e.Employee_Name).trim().toLowerCase(), e)
   }
 
-  // Walk up from proposed manager; if we hit employee, cycle
   let current = mgrName
   const seen = new Set()
   while (current) {
@@ -89,4 +119,33 @@ export function wouldCreateCycle(employees, employeeId, managerName) {
     current = String(node.Reports_To || '').trim().toLowerCase()
   }
   return false
+}
+
+/** Detect reporting cycles among employees (by name). */
+export function findReportingCycles(employees) {
+  const byName = new Map()
+  for (const e of employees) {
+    byName.set(String(e.Employee_Name).trim().toLowerCase(), e)
+  }
+  const cycles = []
+  const visited = new Set()
+  const stack = new Set()
+
+  const dfs = (key, path) => {
+    if (stack.has(key)) {
+      const i = path.indexOf(key)
+      cycles.push(path.slice(i).concat(key))
+      return
+    }
+    if (visited.has(key)) return
+    visited.add(key)
+    stack.add(key)
+    const node = byName.get(key)
+    const mgr = String(node?.Reports_To || '').trim().toLowerCase()
+    if (mgr && byName.has(mgr)) dfs(mgr, path.concat(key))
+    stack.delete(key)
+  }
+
+  for (const key of byName.keys()) dfs(key, [])
+  return cycles
 }

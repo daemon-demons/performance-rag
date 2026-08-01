@@ -157,6 +157,7 @@ export default function AnalyticsView() {
           </button>
           {savedViews.length > 0 && (
             <select
+              aria-label="Apply saved analytics view"
               className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm shadow-sm"
               defaultValue=""
               onChange={(e) => {
@@ -257,7 +258,7 @@ export default function AnalyticsView() {
                 <XAxis dataKey="role" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip
-                  formatter={(value, name, props) => {
+                  formatter={(value, name) => {
                     if (name === 'avgGap') return [value, 'Avg gap']
                     return [value, name]
                   }}
@@ -328,6 +329,7 @@ export default function AnalyticsView() {
               Peer vs team radar
             </h3>
             <select
+              aria-label="Compare person against team mean"
               className="rounded-lg border border-slate-200 px-2 py-1 text-xs shadow-sm"
               value={compareId}
               onChange={(e) => setCompareId(e.target.value)}

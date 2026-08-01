@@ -42,8 +42,8 @@ export default function FilterBar() {
       label: filters.allocation === 'Bench' ? 'On bench' : 'On project',
     })
   }
-  if (onOrg && filters.person && filters.person !== 'All') {
-    chips.push({ key: 'person', label: filters.person })
+  if (filters.person && filters.person !== 'All') {
+    chips.push({ key: 'person', label: `Org: ${filters.person}` })
   }
 
   return (

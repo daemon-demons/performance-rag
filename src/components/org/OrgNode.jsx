@@ -75,10 +75,19 @@ export default function OrgNode({ node }) {
           >
             <span
               draggable
-              title="Drag to reassign"
+              role="button"
+              tabIndex={0}
+              title="Drag to reassign (or Edit → Reports to in the profile)"
+              aria-label={`Drag to reassign ${node.Employee_Name}. For keyboard, open profile and change Reports to.`}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation()
+                  setSelectedEmployeeId(node.id)
+                }
+              }}
               className="inline-flex cursor-grab items-center rounded bg-white/15 p-0.5 active:cursor-grabbing"
             >
               <GripVertical size={12} />

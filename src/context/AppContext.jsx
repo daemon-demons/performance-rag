@@ -9,11 +9,7 @@ import {
 import { evaluateTeam, applyHierarchyRag } from '../utils/ragEvaluator'
 import { applyAttritionCascade } from '../utils/attritionCascade'
 import { aggregateClientRisk } from '../utils/clientRisk'
-import {
-  buildOrgTree,
-  collectSubtree,
-  wouldCreateCycle,
-} from '../utils/orgTree'
+import { collectSubtree, wouldCreateCycle } from '../utils/orgTree'
 import { persistRoster as writeRosterCsv } from '../utils/csvPersist'
 
 const AppContext = createContext(null)
@@ -41,6 +37,10 @@ export function AppProvider({ children }) {
     allocation: 'All',
   })
 
+  const persistQueueRef = useRef(Promise.resolve())
+  const persistTimerRef = useRef(null)
+  const reorgTimerRef = useRef(null)
+
   const syncRaw = useCallback((next) => {
     rawRef.current = next
     setRawEmployees(next)
@@ -58,7 +58,10 @@ export function AppProvider({ children }) {
 
   const loadEmployees = useCallback(
     (employees, options = {}) => {
-      const next = employees.map((e) => ({ ...e, isDeparted: false }))
+      const next = employees.map((e) => ({
+        ...e,
+        isDeparted: Boolean(e.isDeparted),
+      }))
       syncRaw(next)
       const handle = options.fileHandle ?? null
       fileHandleRef.current = handle
@@ -96,24 +99,42 @@ export function AppProvider({ children }) {
   const persistRoster = useCallback(async (overrideRaw) => {
     const people = overrideRaw ?? rawRef.current
     if (!people?.length) return null
-    const result = await writeRosterCsv(people, fileHandleRef.current)
-    const msg =
-      result.method === 'file'
-        ? 'CSV saved to linked file'
-        : 'CSV downloaded (link a local file for auto-save)'
-    setPersistStatus(msg)
-    window.setTimeout(() => setPersistStatus(''), 3500)
-    return result
+
+    const run = async () => {
+      const result = await writeRosterCsv(people, fileHandleRef.current)
+      let msg =
+        result.method === 'file'
+          ? 'CSV saved to linked file'
+          : 'CSV downloaded (link a local file for auto-save)'
+      if (result.error) {
+        msg = `Linked file write failed — downloaded copy instead (${result.error})`
+      }
+      if (persistTimerRef.current) window.clearTimeout(persistTimerRef.current)
+      setPersistStatus(msg)
+      persistTimerRef.current = window.setTimeout(() => setPersistStatus(''), 4000)
+      return result
+    }
+
+    const queued = persistQueueRef.current.then(run, run)
+    persistQueueRef.current = queued.then(
+      () => undefined,
+      () => undefined,
+    )
+    return queued
   }, [])
 
-  const toggleDeparted = useCallback((employeeId) => {
-    const prev = rawRef.current
-    if (!prev) return
-    const next = prev.map((e) =>
-      e.id === employeeId ? { ...e, isDeparted: !e.isDeparted } : e,
-    )
-    syncRaw(next)
-  }, [syncRaw])
+  const toggleDeparted = useCallback(
+    (employeeId) => {
+      const prev = rawRef.current
+      if (!prev) return
+      const next = prev.map((e) =>
+        e.id === employeeId ? { ...e, isDeparted: !e.isDeparted } : e,
+      )
+      syncRaw(next)
+      void persistRoster(next)
+    },
+    [syncRaw, persistRoster],
+  )
 
   const updateEmployee = useCallback(
     (employeeId, patch) => {
@@ -131,15 +152,18 @@ export function AppProvider({ children }) {
   const commitEmployeeUpdate = useCallback(
     async (employeeId, patch) => {
       const prev = rawRef.current
-      if (!prev) return null
+      if (!prev) return { ok: false, reason: 'No roster loaded' }
+
+      let cycleRejected = false
       let next = prev.map((e) => {
         if (e.id !== employeeId) return e
-        const merged = { ...e, ...patch }
-        return merged
+        return { ...e, ...patch }
       })
+
       if (Object.prototype.hasOwnProperty.call(patch, 'Reports_To')) {
         const mgr = String(patch.Reports_To || '').trim()
         if (wouldCreateCycle(next, employeeId, mgr)) {
+          cycleRejected = true
           next = prev.map((e) =>
             e.id === employeeId
               ? { ...e, ...patch, Reports_To: e.Reports_To }
@@ -147,18 +171,28 @@ export function AppProvider({ children }) {
           )
         }
       }
+
       syncRaw(next)
-      return persistRoster(next)
+      const result = await persistRoster(next)
+      if (cycleRejected) {
+        return {
+          ok: false,
+          reason:
+            'That Reports_To change would create a cycle — previous manager kept.',
+          result,
+        }
+      }
+      return { ok: true, result }
     },
     [syncRaw, persistRoster],
   )
 
   const reassignReport = useCallback(
-    (employeeId, managerName) => {
+    async (employeeId, managerName) => {
       const prev = rawRef.current
-      if (!prev) return
+      if (!prev) return []
       const mgr = String(managerName || '').trim()
-      if (wouldCreateCycle(prev, employeeId, mgr)) return
+      if (wouldCreateCycle(prev, employeeId, mgr)) return []
       const before = pipeline(prev)
       const next = prev.map((e) =>
         e.id === employeeId ? { ...e, Reports_To: mgr } : e,
@@ -174,16 +208,18 @@ export function AppProvider({ children }) {
           to: e.ragStatus,
         }))
       syncRaw(next)
-      if (fileHandleRef.current) {
-        void persistRoster(next)
-      }
+      await persistRoster(next)
       if (deltas.length) {
+        if (reorgTimerRef.current) window.clearTimeout(reorgTimerRef.current)
         setReorgPreview({
           title: `Reassigned → ${mgr || 'root'}`,
           deltas,
           at: Date.now(),
         })
-        window.setTimeout(() => setReorgPreview(null), 6000)
+        reorgTimerRef.current = window.setTimeout(
+          () => setReorgPreview(null),
+          6000,
+        )
       }
       return deltas
     },
@@ -227,10 +263,7 @@ export function AppProvider({ children }) {
     [previewAttrition, syncRaw, persistRoster],
   )
 
-  const evaluated = useMemo(
-    () => pipeline(rawEmployees),
-    [rawEmployees],
-  )
+  const evaluated = useMemo(() => pipeline(rawEmployees), [rawEmployees])
 
   const filterOptions = useMemo(() => {
     const clients = [
@@ -353,7 +386,6 @@ export function AppProvider({ children }) {
     selectedEmployee,
     kpis,
     clientRisk,
-    buildOrgTree,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

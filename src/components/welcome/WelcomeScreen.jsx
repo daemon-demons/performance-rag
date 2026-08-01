@@ -89,7 +89,7 @@ export default function WelcomeScreen() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-x-hidden overflow-y-auto">
       <div
         className="pointer-events-none absolute inset-0"
         style={{

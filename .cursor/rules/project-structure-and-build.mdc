@@ -32,13 +32,14 @@ Do not invent parallel entrypoints, alternate routers (keep `HashRouter`), or a 
 Before finishing feature work that touches logic, schema, or tooling:
 
 1. `npm test` (Vitest under `src/**/*.test.js`)
-2. `npm run build` (must succeed; `dist/index.html` must not contain `main.jsx`)
+2. `npm run lint`
+3. `npm run build` (must succeed; `dist/index.html` must not contain `main.jsx`)
 
-If tests or build fail, fix before claiming done. Prefer updating/adding unit tests next to engines (`portfolioEngine`, `analyticsEngine`, `csvSchema`) when changing those modules.
+If tests, lint, or build fail, fix before claiming done. Prefer updating/adding unit tests next to engines when changing those modules.
 
 ## CSV / sample schema
 
-Roster columns and enums live in `src/utils/csvSchema.js`. Changing schema requires updating `public/sample/` (and `sample/` mirror), generators under `scripts/`, and related tests — do not leave samples or parsers out of sync.
+Roster columns live in `src/utils/csvSchema.js` (`Is_Departed` is optional on upload, always written on save). Sample people data: only `scripts/generateSampleRoster.mjs` — run `npm run generate:sample` to refresh `public/sample/`, `sample/`, and `src/utils/sampleCsv.generated.js`. Do not hand-edit the generated sample embed.
 
 ## Git
 

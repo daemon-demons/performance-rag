@@ -60,6 +60,15 @@ export const BOOLEAN_COLUMNS = [
   'Manages_Multiple_Clients',
 ]
 
+/** Optional: persisted attrition flag (not required on upload). */
+export const OPTIONAL_BOOLEAN_COLUMNS = ['Is_Departed']
+
+/** Columns written by employeesToCsv (required + optional). */
+export const CSV_OUTPUT_COLUMNS = [
+  ...REQUIRED_COLUMNS,
+  ...OPTIONAL_BOOLEAN_COLUMNS,
+]
+
 export const META_COLUMNS = [
   'Employee_Name',
   'Role',
@@ -68,15 +77,6 @@ export const META_COLUMNS = [
   'Client',
   'Project_Type',
   'Upcoming_Commitment',
-]
-
-export const SKILL_CHART_KEYS = [
-  { key: 'Max_V93k', label: 'SMT (93k)' },
-  { key: 'TML_Scripting', label: 'TML/Script' },
-  { key: 'CS_ES_HVM_Releases', label: 'CS/ES HVM' },
-  { key: 'Platform_Score', label: 'Platform' },
-  { key: 'Delivery_Score', label: 'Delivery' },
-  { key: 'Depth_Score', label: 'Depth' },
 ]
 
 /** Human labels for RAG status */

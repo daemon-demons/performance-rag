@@ -53,6 +53,7 @@ export default function KpiBar() {
               allocation: 'All',
               client: 'All',
               role: 'All',
+              person: 'All',
             }))
           }
         />

@@ -32,6 +32,7 @@ jobs:
         run: |
           npm ci
           npm test
+          npm run lint
           npm run build
           touch dist/.nojekyll
 
@@ -93,4 +94,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-        continue-on-error: true

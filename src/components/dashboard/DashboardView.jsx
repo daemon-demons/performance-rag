@@ -114,7 +114,8 @@ export default function DashboardView() {
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-300">
           Ready / Watch / At risk is based on skills and role expectations.
-          Click any tile or chart to filter; click a name to open their profile.
+          Click tiles or the allocation chart to filter; click a name to open
+          their profile.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-white/10 px-2.5 py-1">

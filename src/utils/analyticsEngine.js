@@ -1,7 +1,5 @@
 import { normalizeRole, getRoleBaseline, isLeaderRole } from './ragEvaluator'
-
-const CONT_MAP = { Bringup: 8, Debug: 5, No_Idea: 1 }
-const IP_MAP = { None: 2, Basic: 5, Advanced: 9 }
+import { CONT_MAP, IP_MAP, SMT_MAP } from './scoreMaps'
 
 export const HEATMAP_COLUMNS = [
   { key: 'smt', label: 'SMT' },
@@ -16,9 +14,7 @@ export const HEATMAP_COLUMNS = [
 
 function smtStrength(emp) {
   const v = String(emp.SMT_Versions_Known || '')
-  if (v === 'Both') return 10
-  if (v === '8') return 8
-  if (v === '7') return 7
+  if (Object.prototype.hasOwnProperty.call(SMT_MAP, v)) return SMT_MAP[v]
   return emp.Max_V93k ?? 0
 }
 
@@ -74,7 +70,9 @@ const ROLE_ORDER = [
   'Lead',
   'Sr Lead',
   'Manager',
+  'Sr Manager',
   'Staff',
+  'Manager/Staff',
 ]
 
 /** Role readiness funnel: G/A/R counts + avg baseline gap. */

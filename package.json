@@ -9,9 +9,9 @@
     "prebuild": "node scripts/syncIndex.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && npx gh-pages -d dist",
     "generate:sample": "node scripts/generateSampleRoster.mjs",
     "test": "vitest run",
+    "lint": "eslint .",
     "sync:index": "node scripts/syncIndex.mjs"
   },
   "dependencies": {
