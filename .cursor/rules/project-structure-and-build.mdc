@@ -5,41 +5,46 @@ alwaysApply: true
 
 # Project structure & build lock
 
-Client-side Vite + React SPA. Deploy target: GitHub Pages at `/performance-rag/`.
+Client-side Vite + React SPA. Live site: `https://daemon-demons.github.io/performance-rag/`.
 
-## Locked layout
+## Branches
+
+| Branch | Role |
+|--------|------|
+| `main` | **Source only** — app code, `public/`, workflows. Never commit built `dist/` here. |
+| `gh-pages` | **Generated site only** — CI publishes `dist/` here. Never hand-edit. |
+
+## Locked layout (`main`)
 
 | Path | Role |
 |------|------|
-| `index.vite.html` | **Source of truth** for Vite entry (`/src/main.jsx`). Never delete. |
-| `index.html` | May be production HTML on `main` (Pages). Local `npm run dev` / `build` restores it via `scripts/syncIndex.mjs`. |
-| `src/` | App code only (`components/`, `context/`, `pages/`, `utils/`). |
-| `public/` | Static files copied into `dist` (incl. `sample/`, `.nojekyll`). |
-| `docs/`, root `assets/` | **Generated** Pages publish output — do not hand-edit; CI/`npm run build` owns them. |
-| `.github/workflows/deploy-pages.yml` | Sole deploy path: test → build → publish root + `docs/`. |
+| `index.html` | Sole Vite entry (`/src/main.jsx`). |
+| `src/` | App code (`components/`, `context/`, `pages/`, `utils/`). |
+| `public/` | Static files copied into `dist` (sample CSV, favicon, `.nojekyll`). |
+| `.github/workflows/deploy-pages.yml` | Sole deploy path: verify → publish `dist` to `gh-pages`. |
 
 Do not invent parallel entrypoints, alternate routers (keep `HashRouter`), or a second deploy workflow unless the user asks.
 
-## Pages / Vite invariants (blank-page bugs)
+## Pages / Vite invariants
 
-- Keep `vite.config.js` `base: './'` (relative assets). Do **not** switch to absolute `/performance-rag/` without a deliberate Pages plan.
-- Production HTML must reference `./assets/...` — never `/src/main.jsx`.
-- After HTML/entry/deploy changes, ensure `index.vite.html` still has the Vite module script for local dev.
-- Do not remove root or `docs/.nojekyll` publish steps.
+- Keep `vite.config.js` `base: '/performance-rag/'`.
+- Production HTML must reference `/performance-rag/assets/...` — never `/src/main.jsx`.
+- GitHub Pages settings: **Deploy from a branch** → `gh-pages` / `/ (root)`.
+- Do not publish builds onto `main` (no root `assets/`, no `docs/` site mirror).
 
 ## Build must stay green
 
 Before finishing feature work that touches logic, schema, or tooling:
 
-1. `npm test` (Vitest under `src/**/*.test.js`)
+1. `npm test`
 2. `npm run lint`
-3. `npm run build` (must succeed; `dist/index.html` must not contain `main.jsx`)
+3. `npm run build` (`dist/index.html` must not contain `main.jsx`)
 
-If tests, lint, or build fail, fix before claiming done. Prefer updating/adding unit tests next to engines when changing those modules.
+CI on `main` runs the same gates; **deploy runs only after verify passes**.
 
 ## CSV / sample schema
 
-Roster columns live in `src/utils/csvSchema.js` (`Is_Departed` is optional on upload, always written on save). Sample people data: only `scripts/generateSampleRoster.mjs` — run `npm run generate:sample` to refresh `public/sample/`, `sample/`, and `src/utils/sampleCsv.generated.js`. Do not hand-edit the generated sample embed.
+Roster columns live in `src/utils/csvSchema.js` (`Is_Departed` optional on upload, always written on save). Sample people: only `scripts/generateSampleRoster.mjs` — run `npm run generate:sample` to refresh `public/sample/`, `sample/`, and `src/utils/sampleCsv.generated.js`.
 
 ## Git
 

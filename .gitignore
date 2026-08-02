@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Generated Pages publish output (lives on gh-pages only)
+/docs/
+/assets/
+/.nojekyll
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

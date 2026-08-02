@@ -8,19 +8,24 @@ Client-side React SPA for semiconductor test-engineering performance RAG evaluat
 
 ```bash
 npm install
-npm run dev      # local server (restores Vite entry from index.vite.html)
-npm test         # Vitest
-npm run lint     # ESLint
-npm run build    # production → dist/
+npm run dev      # http://localhost:5173/performance-rag/
+npm test
+npm run lint
+npm run build    # → dist/
 ```
 
 ## Deploy
 
-Push to `main` runs GitHub Actions: test → build → publish to repo root and `docs/` (`base: './'`). Do not hand-edit generated `docs/` or root `assets/`. Keep `index.vite.html` as the Vite source entry.
+- **`main`** — source only
+- **`gh-pages`** — production `dist/` (CI only)
+
+Push to `main` runs GitHub Actions: `test` → `lint` → `build` → verify → publish `dist` to `gh-pages`. Broken builds never deploy.
+
+**Repo setting (once):** Settings → Pages → Source: **Deploy from a branch** → **`gh-pages`** / **`/(root)`**.
 
 ## Usage
 
-Load the sample roster or drop a CSV → **Dashboard**, **Org**, **Roster**, **Analytics**. Schema lives in `src/utils/csvSchema.js`; regenerate samples with `npm run generate:sample`.
+Load the sample roster or drop a CSV → **Dashboard**, **Org**, **Roster**, **Analytics**. Schema: `src/utils/csvSchema.js`. Regenerate samples: `npm run generate:sample`.
 
 ## Privacy
 

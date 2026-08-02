@@ -8,15 +8,13 @@ on:
 # Node 24 — https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,7 +26,7 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install, test, and build
+      - name: Install, test, lint, and build
         run: |
           npm ci
           npm test
@@ -44,53 +42,31 @@ jobs:
             exit 1
           fi
           test -d dist/assets
-          grep -E 'src="\./assets/|href="\./assets/' dist/index.html
+          grep -E 'src="/performance-rag/assets/|href="/performance-rag/assets/' dist/index.html
 
-      - name: Publish production build for GitHub Pages
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout -B main origin/main
-
-          # /docs/ (legacy + Pages "folder: /docs")
-          rm -rf docs
-          mkdir -p docs
-          cp -a dist/. docs/
-
-          # Repo root (Pages "folder: / (root)") — must NOT serve Vite source
-          rm -rf assets
-          cp -a dist/assets assets
-          cp -f dist/index.html index.html
-          cp -f dist/favicon.svg favicon.svg
-          cp -f dist/.nojekyll .nojekyll
-          mkdir -p sample
-          cp -f dist/sample/sample_team_roster.csv sample/sample_team_roster.csv
-          # Keep Vite entry template for local npm run dev/build
-          test -f index.vite.html
-
-          git add -f docs assets index.html index.vite.html favicon.svg .nojekyll sample/sample_team_roster.csv \
-            package.json scripts/syncIndex.mjs vite.config.js
-          if git diff --staged --quiet; then
-            echo "No Pages publish changes"
-          else
-            git commit -m "Deploy production build for GitHub Pages [skip ci]"
-            git push origin main
-          fi
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: site-dist
+          path: dist
+          retention-days: 7
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-dist
           path: dist
 
-  deploy-actions-pages:
-    needs: build-and-deploy
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Publish dist to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: Deploy production build
