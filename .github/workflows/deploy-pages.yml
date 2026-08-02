@@ -45,7 +45,7 @@ jobs:
           grep -E 'src="/performance-rag/assets/|href="/performance-rag/assets/' dist/index.html
 
       - name: Upload dist artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: site-dist
           path: dist
@@ -57,7 +57,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: site-dist
           path: dist
