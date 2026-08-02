@@ -8,7 +8,8 @@ export const REQUIRED_COLUMNS = [
   'Allocation_Status',
   'Billing_Months_Remaining',
   'Upcoming_Commitment',
-  'SMT_Versions_Known',
+  'SMT_7_Known',
+  'SMT_8_Known',
   'Other_Testers',
   'SC_Experience',
   'SOD_Handling',
@@ -36,16 +37,17 @@ export const NUMERIC_SKILL_COLUMNS = [
 ]
 
 export const ENUM_COLUMNS = {
-  /** Base 93k tester SM versions: 7, 8, or Both only */
-  SMT_Versions_Known: ['7', '8', 'Both'],
+  Project_Type: ['WS', 'FT', 'Both'],
   CONT_Status: ['Bringup', 'Debug', 'No_Idea'],
-  Product_Focus: ['NPI', 'Sustaining', 'Both'],
+  Product_Focus: ['NPI', 'Sustaining'],
   IP_Debug_Level: ['None', 'Basic', 'Advanced'],
   Client_Demand: ['Low', 'Medium', 'High'],
   Allocation_Status: ['Project', 'Bench'],
 }
 
 export const BOOLEAN_COLUMNS = [
+  'SMT_7_Known',
+  'SMT_8_Known',
   'Other_Testers',
   'SC_Experience',
   'SOD_Handling',
@@ -75,9 +77,14 @@ export const META_COLUMNS = [
   'Reports_To',
   'Mentor_Name',
   'Client',
-  'Project_Type',
   'Upcoming_Commitment',
 ]
+
+/** Allowed Project_Type values for a given Product_Focus. */
+export function allowedProjectTypes(focus) {
+  if (focus === 'NPI') return ['WS', 'FT']
+  return ['WS', 'FT', 'Both']
+}
 
 /** Human labels for RAG status */
 export const RAG_LABELS = {

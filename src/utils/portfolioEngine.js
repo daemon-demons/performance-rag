@@ -1,6 +1,7 @@
 /**
  * Portfolio aggregations for the manager Dashboard.
  */
+import { clientColor } from './clientColors'
 import { isHighSkill } from './scoreMaps'
 
 function activePeople(employees) {
@@ -19,13 +20,14 @@ function classifyProjectType(projectType) {
   const t = String(projectType || '')
     .trim()
     .toUpperCase()
+  if (t === 'BOTH' || t === 'WS+FT' || t === 'FT+WS') return 'Both'
   if (t === 'FT' || t.startsWith('FT ') || t.endsWith(' FT') || /\bFT\b/.test(t)) {
     return 'FT'
   }
   if (t === 'WS' || t.startsWith('WS ') || t.endsWith(' WS') || /\bWS\b/.test(t)) {
     return 'WS'
   }
-  return 'Other'
+  return 'FT'
 }
 
 /** Project vs Bench headcount among active people. */
@@ -48,13 +50,13 @@ export function buildAllocationMix(employees) {
   }
 }
 
-/** NPI / Sustaining / Both among project-allocated people. */
+/** NPI / Sustaining among project-allocated people. */
 export function buildFocusMix(employees) {
   const projectPeople = activePeople(employees).filter(isProject)
-  const counts = { NPI: 0, Sustaining: 0, Both: 0 }
+  const counts = { NPI: 0, Sustaining: 0 }
   for (const e of projectPeople) {
     const f = e.Product_Focus
-    if (f === 'NPI' || f === 'Sustaining' || f === 'Both') counts[f] += 1
+    if (f === 'NPI' || f === 'Sustaining') counts[f] += 1
   }
   return {
     ...counts,
@@ -62,15 +64,14 @@ export function buildFocusMix(employees) {
     chart: [
       { name: 'NPI', value: counts.NPI },
       { name: 'Sustaining', value: counts.Sustaining },
-      { name: 'Both', value: counts.Both },
     ],
   }
 }
 
-/** FT / WS / Other among project-allocated people. */
+/** FT / WS / Both among project-allocated people. */
 export function buildTypeMix(employees) {
   const projectPeople = activePeople(employees).filter(isProject)
-  const counts = { FT: 0, WS: 0, Other: 0 }
+  const counts = { FT: 0, WS: 0, Both: 0 }
   for (const e of projectPeople) {
     counts[classifyProjectType(e.Project_Type)] += 1
   }
@@ -80,7 +81,7 @@ export function buildTypeMix(employees) {
     chart: [
       { name: 'FT', value: counts.FT },
       { name: 'WS', value: counts.WS },
-      { name: 'Other', value: counts.Other },
+      { name: 'Both', value: counts.Both },
     ],
   }
 }
@@ -116,7 +117,8 @@ export function buildBillingRunway(employees) {
     chart: rows.map((r) => ({
       name: r.client,
       months: r.avgMonths,
-      fill: r.lowRunway ? '#DC2626' : r.minMonths < 4 ? '#D97706' : '#16A34A',
+      fill: clientColor(r.client),
+      lowRunway: r.lowRunway,
     })),
     lowAlerts: rows.filter((r) => r.lowRunway),
   }

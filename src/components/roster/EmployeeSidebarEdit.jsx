@@ -1,9 +1,5 @@
-import { ENUM_COLUMNS, BOOLEAN_COLUMNS } from '../../utils/csvSchema'
-import {
-  ROLE_OPTIONS,
-  PROJECT_TYPES,
-  fieldClass,
-} from './employeeSidebarShared'
+import { ENUM_COLUMNS, BOOLEAN_COLUMNS, allowedProjectTypes } from '../../utils/csvSchema'
+import { ROLE_OPTIONS, fieldClass } from './employeeSidebarShared'
 
 export default function EmployeeSidebarEdit({
   draft: d,
@@ -11,6 +7,8 @@ export default function EmployeeSidebarEdit({
   nameOptions,
   filterOptions,
 }) {
+  const projectTypes = allowedProjectTypes(d.Product_Focus || 'Sustaining')
+
   return (
     <div className="space-y-3">
       <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
@@ -18,7 +16,8 @@ export default function EmployeeSidebarEdit({
       </h3>
       <p className="text-[11px] text-slate-500">
         Use Reports to here for keyboard-accessible org reassignment (drag on
-        the org chart is mouse-only).
+        the org chart is mouse-only). NPI focus allows WS/FT only; Sustaining
+        allows WS/FT/Both.
       </p>
 
       <label className="block text-xs text-slate-500">
@@ -94,38 +93,44 @@ export default function EmployeeSidebarEdit({
       </label>
 
       <label className="block text-xs text-slate-500">
-        Project type (FT and WS are distinct)
+        Product focus
+        <select
+          className={`mt-1 ${fieldClass}`}
+          value={d.Product_Focus || 'Sustaining'}
+          onChange={(e) => {
+            const focus = e.target.value
+            setField('Product_Focus', focus)
+            const allowed = allowedProjectTypes(focus)
+            if (!allowed.includes(d.Project_Type)) {
+              setField('Project_Type', allowed[0])
+            }
+          }}
+        >
+          {ENUM_COLUMNS.Product_Focus.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="block text-xs text-slate-500">
+        Project type (WS / FT / Both)
         <select
           className={`mt-1 ${fieldClass}`}
           value={
-            PROJECT_TYPES.includes(d.Project_Type) ? d.Project_Type : 'Other'
+            projectTypes.includes(d.Project_Type)
+              ? d.Project_Type
+              : projectTypes[0]
           }
-          onChange={(e) => {
-            const v = e.target.value
-            if (v === 'Other') setField('Project_Type', d.Project_Type || '')
-            else setField('Project_Type', v)
-          }}
+          onChange={(e) => setField('Project_Type', e.target.value)}
         >
-          {PROJECT_TYPES.map((p) => (
+          {projectTypes.map((p) => (
             <option key={p} value={p}>
               {p}
             </option>
           ))}
         </select>
-        {(!PROJECT_TYPES.includes(d.Project_Type) ||
-          d.Project_Type === 'Other') && (
-          <input
-            className={`mt-1 ${fieldClass}`}
-            placeholder="Custom project type"
-            value={
-              PROJECT_TYPES.includes(d.Project_Type) &&
-              d.Project_Type !== 'Other'
-                ? ''
-                : d.Project_Type || ''
-            }
-            onChange={(e) => setField('Project_Type', e.target.value)}
-          />
-        )}
       </label>
 
       <label className="block text-xs text-slate-500">
@@ -163,7 +168,12 @@ export default function EmployeeSidebarEdit({
       </label>
 
       {Object.entries(ENUM_COLUMNS)
-        .filter(([col]) => col !== 'Allocation_Status')
+        .filter(
+          ([col]) =>
+            col !== 'Allocation_Status' &&
+            col !== 'Project_Type' &&
+            col !== 'Product_Focus',
+        )
         .map(([col, options]) => (
           <label key={col} className="block text-xs text-slate-500">
             {col.replace(/_/g, ' ')}

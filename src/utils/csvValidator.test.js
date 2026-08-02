@@ -29,9 +29,10 @@ describe('csvValidator', () => {
       if (c === 'Employee_Name') return 'Pat'
       if (c === 'Role') return 'Eng 1'
       if (c === 'Is_Departed') return 'TRUE'
-      if (c === 'SMT_Versions_Known') return '7'
+      if (c === 'SMT_7_Known' || c === 'SMT_8_Known') return c === 'SMT_7_Known' ? 'TRUE' : 'FALSE'
       if (c === 'CONT_Status') return 'Debug'
       if (c === 'Product_Focus') return 'NPI'
+      if (c === 'Project_Type') return 'FT'
       if (c === 'IP_Debug_Level') return 'None'
       if (c === 'Client_Demand') return 'Low'
       if (c === 'Allocation_Status') return 'Project'
@@ -74,7 +75,8 @@ describe('csvValidator', () => {
         Allocation_Status: 'Project',
         Billing_Months_Remaining: 2,
         Upcoming_Commitment: '',
-        SMT_Versions_Known: '7',
+        SMT_7_Known: true,
+        SMT_8_Known: false,
         Other_Testers: false,
         SC_Experience: false,
         SOD_Handling: false,
@@ -118,5 +120,52 @@ describe('csvValidator', () => {
     const result = validateAndParseCsvText(dup)
     expect(result.ok).toBe(true)
     expect(result.warnings?.some((w) => /Duplicate/i.test(w))).toBe(true)
+  })
+
+  it('migrates legacy SMT_Versions_Known and coerces NPI+Both', () => {
+    const legacyCols = REQUIRED_COLUMNS.map((c) => {
+      if (c === 'SMT_7_Known' || c === 'SMT_8_Known') return null
+      return c
+    }).filter(Boolean)
+    const header = [...legacyCols, 'SMT_Versions_Known'].join(',')
+    const values = Object.fromEntries(legacyCols.map((c) => [c, '']))
+    Object.assign(values, {
+      Employee_Name: 'Pat',
+      Role: 'Eng 1',
+      Client: 'Client Q',
+      Project_Type: 'Both',
+      Allocation_Status: 'Project',
+      Billing_Months_Remaining: '3',
+      SMT_Versions_Known: 'Both',
+      CONT_Status: 'Debug',
+      Product_Focus: 'NPI',
+      IP_Debug_Level: 'None',
+      Client_Demand: 'Low',
+      TML_Scripting: '3',
+      CS_ES_HVM_Releases: '3',
+      Other_Testers: 'FALSE',
+      SC_Experience: 'FALSE',
+      SOD_Handling: 'FALSE',
+      DBD_Bringup: 'FALSE',
+      Project_Projections_Current: 'FALSE',
+      Is_Independent: 'TRUE',
+      Does_Automation_Scripting: 'FALSE',
+      Handles_1_on_1_Mentoring: 'FALSE',
+      Produces_Documentation: 'FALSE',
+      Runs_Classroom_Training: 'FALSE',
+      Manages_Project_Deliverables: 'FALSE',
+      Manages_Multiple_Clients: 'FALSE',
+    })
+    const row = [...legacyCols, 'SMT_Versions_Known']
+      .map((c) => values[c] ?? '')
+      .join(',')
+    const result = validateAndParseCsvText(`${header}\n${row}\n`)
+    expect(result.ok).toBe(true)
+    expect(result.employees[0].SMT_7_Known).toBe(true)
+    expect(result.employees[0].SMT_8_Known).toBe(true)
+    expect(result.employees[0].Project_Type).toBe('WS')
+    expect(
+      result.warnings?.some((w) => /NPI/i.test(w) && /Both|Project_Type/i.test(w)),
+    ).toBe(true)
   })
 })

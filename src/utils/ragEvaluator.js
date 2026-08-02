@@ -3,7 +3,8 @@ import {
   PRODUCT_MAP,
   IP_MAP,
   DEMAND_MAP,
-  SMT_MAP,
+  smtStrength,
+  smtGateMet,
 } from './scoreMaps'
 
 /** Canonical role labels for edit dropdowns (order preserved). */
@@ -165,8 +166,7 @@ export function isLeaderRole(role) {
  * Compute scores, failed responsibilities, and base RAG for one employee.
  */
 export function evaluateEmployee(employee) {
-  const smtRaw = String(employee.SMT_Versions_Known ?? '7')
-  const smt = SMT_MAP[smtRaw] ?? 7
+  const smt = smtStrength(employee)
   const otherTesters = boolScore(employee.Other_Testers)
   const cont = CONT_MAP[employee.CONT_Status] ?? 1
   const dbd = boolScore(employee.DBD_Bringup)
@@ -189,7 +189,6 @@ export function evaluateEmployee(employee) {
   const Overall_Score =
     Platform_Score * 0.4 + Delivery_Score * 0.35 + Depth_Score * 0.25
 
-  // Max_V93k = mapped SMT strength (7 / 8 / Both)
   const Max_V93k = smt
   const Lab_Score = avg([cont, dbd])
 
@@ -202,9 +201,7 @@ export function evaluateEmployee(employee) {
   const checksMet = failedCount === 0
   const baseline = getRoleBaseline(employee.Role)
   const meetsBaseline = baseline === null || Overall_Score >= baseline
-
-  // Knowing any base 93k SM version (7, 8, or Both) satisfies the platform gate
-  const smtGateMet = smtRaw === '7' || smtRaw === '8' || smtRaw === 'Both'
+  const smtOk = smtGateMet(employee)
 
   let ragStatus = 'AMBER'
 
@@ -213,11 +210,11 @@ export function evaluateEmployee(employee) {
 
   if (isRedByScore || isRedByChecks) {
     ragStatus = 'RED'
-  } else if (meetsBaseline && smtGateMet && checksMet) {
+  } else if (meetsBaseline && smtOk && checksMet) {
     ragStatus = 'GREEN'
   } else if (
     (meetsBaseline && !checksMet) ||
-    (!smtGateMet && Lab_Score >= 8 && checksMet)
+    (!smtOk && Lab_Score >= 8 && checksMet)
   ) {
     ragStatus = 'AMBER'
   } else {
@@ -226,7 +223,6 @@ export function evaluateEmployee(employee) {
 
   return {
     ...employee,
-    SMT_Versions_Known: smtRaw,
     Platform_Score: round2(Platform_Score),
     Delivery_Score: round2(Delivery_Score),
     Depth_Score: round2(Depth_Score),

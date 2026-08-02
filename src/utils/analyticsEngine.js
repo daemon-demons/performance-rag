@@ -1,5 +1,5 @@
 import { normalizeRole, getRoleBaseline, isLeaderRole } from './ragEvaluator'
-import { CONT_MAP, IP_MAP, SMT_MAP } from './scoreMaps'
+import { CONT_MAP, IP_MAP, smtStrength } from './scoreMaps'
 
 export const HEATMAP_COLUMNS = [
   { key: 'smt', label: 'SMT' },
@@ -11,12 +11,6 @@ export const HEATMAP_COLUMNS = [
   { key: 'tml', label: 'TML' },
   { key: 'hvm', label: 'HVM' },
 ]
-
-function smtStrength(emp) {
-  const v = String(emp.SMT_Versions_Known || '')
-  if (Object.prototype.hasOwnProperty.call(SMT_MAP, v)) return SMT_MAP[v]
-  return emp.Max_V93k ?? 0
-}
 
 function cellStrength(emp, key) {
   switch (key) {
@@ -171,8 +165,7 @@ export function buildCapabilitySpof(employees) {
     }
     const b = byClient.get(client)
     b.total += 1
-    const smt = String(e.SMT_Versions_Known || '')
-    if (smt === '8' || smt === 'Both') b.smt8 += 1
+    if (e.SMT_8_Known || smtStrength(e) >= 8) b.smt8 += 1
     if (e.CONT_Status === 'Bringup') b.contBringup += 1
     if (e.IP_Debug_Level === 'Advanced') b.ipAdvanced += 1
     if (e.SC_Experience) b.sc += 1
@@ -183,7 +176,7 @@ export function buildCapabilitySpof(employees) {
     .map((b) => ({
       ...b,
       flags: [
-        b.smt8 < 2 ? 'SMT 8/Both SPOF' : null,
+        b.smt8 < 2 ? 'SMT 8 SPOF' : null,
         b.contBringup < 2 ? 'CONT Bringup SPOF' : null,
         b.ipAdvanced < 1 ? 'No IP Advanced' : null,
       ].filter(Boolean),

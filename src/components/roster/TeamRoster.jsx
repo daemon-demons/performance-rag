@@ -1,5 +1,6 @@
 import { useApp } from '../../context/AppContext'
 import RagBadge from '../common/RagBadge'
+import { clientColor } from '../../utils/clientColors'
 import EmployeeSidebar from './EmployeeSidebar'
 
 export default function TeamRoster() {
@@ -66,7 +67,22 @@ export default function TeamRoster() {
                   </div>
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">{emp.Role}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.Client}</td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs font-medium"
+                    style={{
+                      color: clientColor(emp.Client),
+                      backgroundColor: `${clientColor(emp.Client)}18`,
+                    }}
+                  >
+                    <span
+                      className="inline-block size-1.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: clientColor(emp.Client) }}
+                      aria-hidden
+                    />
+                    {emp.Client}
+                  </span>
+                </td>
                 <td className="px-3 py-2 whitespace-nowrap text-xs">
                   {emp.Allocation_Status === 'Bench' ? 'Bench' : 'Project'}
                 </td>

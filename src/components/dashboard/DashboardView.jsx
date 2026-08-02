@@ -274,8 +274,8 @@ export default function DashboardView() {
         </Card>
 
         <Card
-          title="FT vs WS work"
-          caption="FT and WS are different project types among people on project."
+          title="FT / WS / Both"
+          caption="Project types among people on project (WS, FT, or Both)."
         >
           {typeMix.total === 0 ? (
             <p className="text-sm text-slate-500">
@@ -300,7 +300,7 @@ export default function DashboardView() {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card
           title="Months of billing left"
-          caption="Average billing runway by client for people on project. Red = someone under 2 months."
+          caption="Average billing runway by client for people on project. Bars use client brand colors."
         >
           {billing.chart.length === 0 ? (
             <p className="text-sm text-slate-500">
@@ -392,7 +392,7 @@ export default function DashboardView() {
         </h3>
         <p className="mb-3 text-xs text-slate-500">
           Single point of failure = fewer than 2 strong people on that client
-          (SMT 8/Both or Platform ≥ 8).
+          (SMT 8 known or Platform ≥ 8).
         </p>
         <ClientRiskPanel
           clients={clientRisk.clients}

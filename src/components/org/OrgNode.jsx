@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { GripVertical, Minus, Plus } from 'lucide-react'
 import RagBadge from '../common/RagBadge'
 import { useApp } from '../../context/AppContext'
+import { clientColor } from '../../utils/clientColors'
 import { normalizeRole } from '../../utils/ragEvaluator'
 
 const HEADER_BY_TIER = {
@@ -69,6 +70,7 @@ export default function OrgNode({ node }) {
               ? 'border-tessolve-blue ring-2 ring-tessolve-blue/40'
               : 'border-slate-200/90'
           } ${dragging ? 'opacity-40' : ''} ${node.isDeparted ? 'opacity-50' : ''}`}
+          style={{ borderLeftWidth: 3, borderLeftColor: clientColor(node.Client) }}
         >
           <div
             className={`flex items-center justify-between gap-1 px-1.5 py-1 text-[10px] font-semibold tracking-wide text-white uppercase ${headerClass(node.Role)}`}
@@ -127,7 +129,12 @@ export default function OrgNode({ node }) {
                 }
               />
             </div>
-            <p className="truncate text-[10px] text-slate-400">{node.Client}</p>
+            <p
+              className="truncate text-[10px] font-medium"
+              style={{ color: clientColor(node.Client) }}
+            >
+              {node.Client}
+            </p>
             <label
               className="flex cursor-pointer items-center justify-center gap-1 text-[10px] text-slate-500"
               onClick={(e) => e.stopPropagation()}

@@ -53,7 +53,7 @@ const sample = [
     Employee_Name: 'Cara',
     Role: 'Eng 1',
     Client: 'Client A',
-    Project_Type: 'NPI',
+    Project_Type: 'FT',
     Allocation_Status: 'Bench',
     Billing_Months_Remaining: 0,
     Upcoming_Commitment: 'Q WS bringup',

@@ -66,7 +66,14 @@ export default function EmployeeSidebarView({ emp, selectEmployeeByName }) {
           label="Upcoming commitment"
           value={emp.Upcoming_Commitment || '—'}
         />
-        <Fact label="SMT" value={emp.SMT_Versions_Known} />
+        <Fact
+          label="SMT 7"
+          value={emp.SMT_7_Known ? 'Known' : 'Unknown'}
+        />
+        <Fact
+          label="SMT 8"
+          value={emp.SMT_8_Known ? 'Known' : 'Unknown'}
+        />
         <Fact label="CONT" value={emp.CONT_Status} />
         <Fact label="Product" value={emp.Product_Focus} />
         <Fact label="IP debug" value={emp.IP_Debug_Level} />

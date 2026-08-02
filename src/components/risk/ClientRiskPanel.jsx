@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import RagBadge from '../common/RagBadge'
+import { clientColor } from '../../utils/clientColors'
 
 export default function ClientRiskPanel({ clients, spofAlerts }) {
   return (
@@ -13,7 +14,7 @@ export default function ClientRiskPanel({ clients, spofAlerts }) {
                 Single point of failure / client risk
               </h3>
               <p className="mt-1 text-sm text-amber-800">
-                Clients with fewer than 2 strong people (SMT 8/Both or Platform ≥
+                Clients with fewer than 2 strong people (SMT 8 known or Platform ≥
                 8) — a single departure could leave you exposed:
               </p>
               <ul className="mt-2 space-y-1 text-sm text-amber-900">
@@ -44,7 +45,19 @@ export default function ClientRiskPanel({ clients, spofAlerts }) {
           <tbody className="divide-y divide-slate-100">
             {clients.map((c) => (
               <tr key={c.client} className="hover:bg-slate-50">
-                <td className="px-3 py-2.5 text-slate-800">{c.client}</td>
+                <td className="px-3 py-2.5">
+                  <span
+                    className="inline-flex items-center gap-1.5 font-medium"
+                    style={{ color: clientColor(c.client) }}
+                  >
+                    <span
+                      className="inline-block size-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: clientColor(c.client) }}
+                      aria-hidden
+                    />
+                    {c.client}
+                  </span>
+                </td>
                 <td className="px-3 py-2.5 text-slate-600">{c.total}</td>
                 <td className="px-3 py-2.5 font-mono text-slate-600">
                   {c.highSkillCount}

@@ -8,10 +8,11 @@ import {
   PolarRadiusAxis,
   Radar,
   Tooltip,
+  Legend,
 } from 'recharts'
 import { useApp } from '../../context/AppContext'
 import RagBadge from '../common/RagBadge'
-import { radarAxes, snapshotEmployee } from './employeeSidebarShared'
+import { mergePersonTeamRadar, snapshotEmployee } from './employeeSidebarShared'
 import EmployeeSidebarView from './EmployeeSidebarView'
 import EmployeeSidebarEdit from './EmployeeSidebarEdit'
 
@@ -55,8 +56,11 @@ export default function EmployeeSidebar() {
   }, [selectedEmployee, setSelectedEmployeeId, editing])
 
   const radarData = useMemo(
-    () => (selectedEmployee ? radarAxes(selectedEmployee) : []),
-    [selectedEmployee],
+    () =>
+      selectedEmployee
+        ? mergePersonTeamRadar(selectedEmployee, employees)
+        : [],
+    [selectedEmployee, employees],
   )
 
   const nameOptions = useMemo(
@@ -205,11 +209,11 @@ export default function EmployeeSidebar() {
 
           <div>
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Skill profile
+              Skill profile vs team
             </h3>
-            <div className="h-44 w-full rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50 shadow-inner">
+            <div className="h-52 w-full rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50 shadow-inner">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
                   <PolarGrid stroke="#e2e8f0" />
                   <PolarAngleAxis
                     dataKey="skill"
@@ -217,13 +221,24 @@ export default function EmployeeSidebar() {
                   />
                   <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 9 }} />
                   <Radar
-                    name="Skills"
-                    dataKey="value"
+                    name="Team avg"
+                    dataKey="team"
+                    stroke="#94a3b8"
+                    fill="#94a3b8"
+                    fillOpacity={0.15}
+                  />
+                  <Radar
+                    name="Person"
+                    dataKey="person"
                     stroke="#F2802B"
                     fill="#23A6E3"
-                    fillOpacity={0.3}
+                    fillOpacity={0.35}
                   />
                   <Tooltip />
+                  <Legend
+                    wrapperStyle={{ fontSize: 11 }}
+                    iconSize={10}
+                  />
                 </RadarChart>
               </ResponsiveContainer>
             </div>

@@ -5,6 +5,7 @@ import {
   BOOLEAN_COLUMNS,
   META_COLUMNS,
   ENUM_COLUMNS,
+  allowedProjectTypes,
 } from './csvSchema'
 import { findReportingCycles } from './orgTree'
 
@@ -12,8 +13,8 @@ function parseBoolean(value) {
   if (typeof value === 'boolean') return value
   if (value === null || value === undefined) return false
   const normalized = String(value).trim().toLowerCase()
-  if (['true', '1', 'yes', 'y'].includes(normalized)) return true
-  if (['false', '0', 'no', 'n', ''].includes(normalized)) return false
+  if (['true', '1', 'yes', 'y', 'known'].includes(normalized)) return true
+  if (['false', '0', 'no', 'n', '', 'unknown'].includes(normalized)) return false
   return Boolean(normalized)
 }
 
@@ -23,31 +24,44 @@ function parseNumber(value) {
   return Number.isFinite(n) ? n : 0
 }
 
+function migrateLegacySmt(row) {
+  const legacy = String(row.SMT_Versions_Known ?? '').trim().toLowerCase().replace(/\s+/g, '')
+  if (!legacy) return { SMT_7_Known: false, SMT_8_Known: false }
+  if (legacy === 'both' || legacy === '7+8' || legacy === '8+7' || legacy === '7and8' || legacy === 'v7v8') {
+    return { SMT_7_Known: true, SMT_8_Known: true }
+  }
+  if (legacy === '8' || legacy === 'v8' || legacy === 'sm8') {
+    return { SMT_7_Known: false, SMT_8_Known: true }
+  }
+  if (legacy === '7' || legacy === 'v7' || legacy === 'sm7') {
+    return { SMT_7_Known: true, SMT_8_Known: false }
+  }
+  const n = Number(legacy)
+  if (Number.isFinite(n)) {
+    if (n >= 9) return { SMT_7_Known: true, SMT_8_Known: true }
+    if (n >= 8) return { SMT_7_Known: false, SMT_8_Known: true }
+    return { SMT_7_Known: true, SMT_8_Known: false }
+  }
+  return { SMT_7_Known: false, SMT_8_Known: false }
+}
+
 function parseEnum(col, value) {
   const allowed = ENUM_COLUMNS[col] || []
   const raw = String(value ?? '').trim()
   if (!raw) return allowed[0] || ''
 
-  if (col === 'SMT_Versions_Known') {
-    const l = raw.toLowerCase().replace(/\s+/g, '')
-    if (l === 'both' || l === '7+8' || l === '8+7' || l === '7and8' || l === 'v7v8') {
-      return 'Both'
-    }
-    if (l === '8' || l === 'v8' || l === 'sm8') return '8'
-    if (l === '7' || l === 'v7' || l === 'sm7') return '7'
-    const n = Number(raw)
-    if (Number.isFinite(n)) {
-      if (n >= 9) return 'Both'
-      if (n >= 8) return '8'
-      return '7'
-    }
-    return '7'
-  }
-
   const match = allowed.find(
     (a) => a.toLowerCase() === raw.toLowerCase().replace(/\s+/g, '_'),
   )
   if (match) return match
+
+  if (col === 'Project_Type') {
+    const l = raw.toUpperCase()
+    if (/\bBOTH\b/.test(l) || l === 'WS+FT' || l === 'FT+WS') return 'Both'
+    if (/\bFT\b/.test(l) || l === 'FT') return 'FT'
+    if (/\bWS\b/.test(l) || l === 'WS') return 'WS'
+    return 'FT'
+  }
   if (col === 'CONT_Status') {
     const l = raw.toLowerCase()
     if (l.includes('bring')) return 'Bringup'
@@ -56,7 +70,6 @@ function parseEnum(col, value) {
   }
   if (col === 'Product_Focus') {
     const l = raw.toLowerCase()
-    if (l.includes('both')) return 'Both'
     if (l.includes('npi')) return 'NPI'
     return 'Sustaining'
   }
@@ -82,8 +95,19 @@ function parseEnum(col, value) {
   return allowed[0] || raw
 }
 
-function collectWarnings(employees) {
-  const warnings = []
+function enforceFocusTypeRules(employee, rowWarnings) {
+  const allowed = allowedProjectTypes(employee.Product_Focus)
+  if (!allowed.includes(employee.Project_Type)) {
+    const next = allowed[0]
+    rowWarnings.push(
+      `${employee.Employee_Name}: NPI cannot use Project_Type Both — coerced to ${next}.`,
+    )
+    employee.Project_Type = next
+  }
+}
+
+function collectWarnings(employees, rowWarnings) {
+  const warnings = [...rowWarnings]
   const nameCounts = new Map()
   for (const e of employees) {
     const key = String(e.Employee_Name).trim().toLowerCase()
@@ -149,9 +173,20 @@ export function validateAndParseCsvText(text) {
     }
   }
 
-  const missingColumns = REQUIRED_COLUMNS.filter(
-    (col) => !headers.includes(col),
-  )
+  const hasLegacySmt = headers.includes('SMT_Versions_Known')
+  const hasNewSmt =
+    headers.includes('SMT_7_Known') && headers.includes('SMT_8_Known')
+
+  const missingColumns = REQUIRED_COLUMNS.filter((col) => {
+    if (
+      (col === 'SMT_7_Known' || col === 'SMT_8_Known') &&
+      hasLegacySmt &&
+      !hasNewSmt
+    ) {
+      return false
+    }
+    return !headers.includes(col)
+  })
 
   if (missingColumns.length) {
     return {
@@ -176,15 +211,14 @@ export function validateAndParseCsvText(text) {
   }
 
   const hasDepartedCol = headers.includes('Is_Departed')
+  const rowWarnings = []
 
   const employees = rows
     .filter((row) => row.Employee_Name && String(row.Employee_Name).trim())
     .map((row, index) => {
       const employee = {
         id: `emp-${index}-${String(row.Employee_Name).trim()}`,
-        isDeparted: hasDepartedCol
-          ? parseBoolean(row.Is_Departed)
-          : false,
+        isDeparted: hasDepartedCol ? parseBoolean(row.Is_Departed) : false,
       }
 
       for (const col of META_COLUMNS) {
@@ -200,9 +234,21 @@ export function validateAndParseCsvText(text) {
       }
 
       for (const col of BOOLEAN_COLUMNS) {
+        if (
+          (col === 'SMT_7_Known' || col === 'SMT_8_Known') &&
+          !hasNewSmt &&
+          hasLegacySmt
+        ) {
+          continue
+        }
         employee[col] = parseBoolean(row[col])
       }
 
+      if (!hasNewSmt && hasLegacySmt) {
+        Object.assign(employee, migrateLegacySmt(row))
+      }
+
+      enforceFocusTypeRules(employee, rowWarnings)
       return employee
     })
 
@@ -218,7 +264,7 @@ export function validateAndParseCsvText(text) {
   return {
     ok: true,
     employees,
-    warnings: collectWarnings(employees),
+    warnings: collectWarnings(employees, rowWarnings),
   }
 }
 
