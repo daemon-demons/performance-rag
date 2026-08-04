@@ -1,0 +1,18 @@
+Employee_Name,Role,Reports_To,Mentor_Name,Client,Project_Type,Allocation_Status,Billing_Months_Remaining,Upcoming_Commitment,SMT_7_Known,SMT_8_Known,Other_Testers,SC_Experience,SOD_Handling,CONT_Status,DBD_Bringup,Product_Focus,IP_Debug_Level,Client_Demand,Project_Projections_Current,TML_Scripting,CS_ES_HVM_Releases,Is_Independent,Does_Automation_Scripting,Handles_1_on_1_Mentoring,Produces_Documentation,Runs_Classroom_Training,Manages_Project_Deliverables,Manages_Multiple_Clients,Is_Departed
+Rajmohan,Manager,,,Client Q,Both,Project,12,Multi-client Q3 review,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Advanced,High,TRUE,8,9,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE
+Bhanu,Lead,Rajmohan,Rajmohan,Client Q,Both,Project,9,Client Q HVM ramp,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Advanced,High,TRUE,8,8,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE
+Mari,Lead,Rajmohan,Rajmohan,Client A,FT,Project,7,Client A NPI tapeout,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,NPI,Advanced,High,TRUE,8,8,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE
+Sriram,Lead,Rajmohan,Rajmohan,Client G,WS,Project,6,Client G sustaining,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Advanced,Medium,TRUE,8,7,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE
+Siva,Sr Eng 2,Rajmohan,Rajmohan,Client A,Both,Project,10,Platform mentoring pool,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Advanced,High,TRUE,9,8,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE
+Hussain,Sr Eng 1,Bhanu,Bhanu,Client Q,WS,Project,8,Client Q WS bringup,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Advanced,High,TRUE,8,7,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE
+Sneha,Sr Eng 1,Bhanu,Siva,Client Q,FT,Project,5,Client Q FT debug,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,NPI,Advanced,Medium,TRUE,7,7,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE
+Karthik,Eng 2,Mari,Mari,Client A,WS,Project,6,Client A WS NPI,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,NPI,Basic,Medium,TRUE,7,6,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Priya,Eng 2,Sriram,Sriram,Client G,Both,Project,7,Client G dual track,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Basic,Medium,TRUE,7,6,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Arun,Eng 1,Mari,Karthik,Client A,FT,Project,4,Client A FT support,TRUE,FALSE,TRUE,TRUE,FALSE,Debug,TRUE,NPI,Basic,Medium,TRUE,6,5,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Deepak,Eng 2,Bhanu,Hussain,Client Q,WS,Project,3,Client Q pattern,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Basic,Medium,TRUE,6,6,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Nisha,Sr Eng 1,Sriram,Siva,Client G,FT,Project,5,Client G FT,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,Sustaining,Advanced,High,TRUE,7,7,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE
+Vikram,Eng 1,Sriram,Priya,Client G,WS,Bench,1,,TRUE,FALSE,FALSE,TRUE,FALSE,Debug,TRUE,Sustaining,Basic,Low,FALSE,5,4,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Meera,Eng 2,Mari,Mari,Client A,FT,Project,4,Client A script,TRUE,TRUE,TRUE,TRUE,TRUE,Bringup,TRUE,NPI,Basic,Medium,TRUE,6,6,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Santhosh,Eng 1,Sriram,Hussain,Client Q,Both,Project,6,Client Q dual,TRUE,FALSE,TRUE,TRUE,FALSE,Bringup,TRUE,Sustaining,Basic,Medium,TRUE,5,5,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Ravi,Eng 2,Sriram,Priya,Client G,FT,Bench,0,,FALSE,FALSE,FALSE,FALSE,FALSE,No_Idea,FALSE,Sustaining,None,Low,FALSE,2,1,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
+Ananya,Intern,Rajmohan,Karthik,Client A,WS,Project,2,Learning track,FALSE,FALSE,FALSE,FALSE,FALSE,No_Idea,FALSE,NPI,None,Low,FALSE,1,1,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE
