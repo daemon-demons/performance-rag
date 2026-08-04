@@ -1,6 +1,6 @@
 # Performance RAG Dashboard
 
-Client-side React SPA for semiconductor test-engineering performance RAG evaluation. All CSV parsing and scoring run in the browser.
+Client-side React SPA for performance RAG evaluation. All CSV parsing and scoring run in the browser.
 
 **Live:** [https://daemon-demons.github.io/performance-rag/](https://daemon-demons.github.io/performance-rag/)
 
