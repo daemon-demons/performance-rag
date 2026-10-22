@@ -71,28 +71,28 @@ export async function openCsvWithHandle() {
 }
 
 /**
- * Write roster to linked file handle, or download as fallback.
- * @returns {{ method: 'file' | 'download', filename?: string, error?: string }}
+ * Overwrite the linked roster file. Never downloads.
+ * No handle means the roster stays in memory until an explicit export.
+ * @returns {{ method: 'file' | 'memory' | 'error', error?: string }}
  */
-export async function persistRoster(employees, fileHandle) {
+export async function writeLinkedRoster(employees, fileHandle) {
+  if (!fileHandle) return { method: 'memory' }
   const csv = employeesToCsv(employees)
-  if (fileHandle) {
-    try {
-      const writable = await fileHandle.createWritable()
-      await writable.write(csv)
-      await writable.close()
-      return { method: 'file' }
-    } catch (err) {
-      const error =
-        err instanceof Error ? err.message : 'Could not write linked file'
-      downloadCsvText(csv, 'team_roster.csv')
-      return {
-        method: 'download',
-        filename: 'team_roster.csv',
-        error,
-      }
-    }
+  try {
+    const writable = await fileHandle.createWritable()
+    await writable.write(csv)
+    await writable.close()
+    return { method: 'file' }
+  } catch (err) {
+    const error =
+      err instanceof Error ? err.message : 'Could not write linked file'
+    return { method: 'error', error }
   }
-  downloadCsvText(csv, 'team_roster.csv')
-  return { method: 'download', filename: 'team_roster.csv' }
+}
+
+/** Download the current roster. This is the only export path. */
+export function exportRosterCsv(employees, filename = 'team_roster.csv') {
+  const csv = employeesToCsv(employees)
+  downloadCsvText(csv, filename)
+  return { method: 'download', filename }
 }

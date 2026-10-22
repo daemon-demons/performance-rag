@@ -27,7 +27,7 @@ import {
   buildLeadershipScores,
   buildAutoInsights,
 } from '../../utils/analyticsEngine'
-import { employeesToCsv, downloadCsvText } from '../../utils/csvPersist'
+import { exportRosterCsv } from '../../utils/csvPersist'
 
 const WhatIfPanel = lazy(() => import('./WhatIfPanel'))
 
@@ -60,7 +60,6 @@ export default function AnalyticsView() {
     rawEmployees,
     filters,
     setFilters,
-    persistRoster,
   } = useApp()
 
   const [compareId, setCompareId] = useState('')
@@ -117,15 +116,9 @@ export default function AnalyticsView() {
     setFilters({ ...view.filters })
   }
 
-  const exportCsv = async () => {
-    if (rawEmployees?.length) {
-      const result = await persistRoster()
-      if (result?.method === 'file') return
-    }
-    downloadCsvText(
-      employeesToCsv(rawEmployees || []),
-      'team_roster_export.csv',
-    )
+  const exportCsv = () => {
+    if (!rawEmployees?.length) return
+    exportRosterCsv(rawEmployees)
   }
 
   return (

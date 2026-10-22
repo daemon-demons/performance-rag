@@ -1,17 +1,18 @@
 import { useApp } from '../../context/AppContext'
 
 function KpiCard({ label, value, accent, active, onClick, hint }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={hint}
-      className={`flex min-w-[100px] flex-1 items-center gap-3 rounded-xl border px-3 py-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] ${
-        active
-          ? 'border-tessolve-orange bg-orange-50 ring-1 ring-tessolve-orange/40'
-          : 'border-slate-200/80 bg-white/90 hover:border-tessolve-blue/40'
-      }`}
-    >
+  const className = `flex min-w-[100px] flex-1 items-center gap-3 rounded-xl border px-3 py-2.5 text-left shadow-sm ${
+    active
+      ? 'border-tessolve-orange bg-orange-50 ring-1 ring-tessolve-orange/40'
+      : 'border-slate-200/80 bg-white/90'
+  } ${
+    onClick
+      ? 'transition hover:-translate-y-0.5 hover:border-tessolve-blue/40 hover:shadow-md active:scale-[0.99]'
+      : ''
+  }`
+
+  const body = (
+    <>
       <span className={`h-2.5 w-2.5 shrink-0 rounded-full shadow-sm ${accent}`} />
       <div>
         <p className="text-[11px] text-slate-500">{label}</p>
@@ -19,6 +20,20 @@ function KpiCard({ label, value, accent, active, onClick, hint }) {
           {value}
         </p>
       </div>
+    </>
+  )
+
+  if (!onClick) {
+    return (
+      <div className={className} title={hint}>
+        {body}
+      </div>
+    )
+  }
+
+  return (
+    <button type="button" onClick={onClick} title={hint} className={className}>
+      {body}
     </button>
   )
 }
@@ -30,22 +45,15 @@ export default function KpiBar() {
     setFilters((f) => ({ ...f, rag: f.rag === rag ? 'All' : rag }))
   }
 
-  const toggleAllocation = (allocation) => {
-    setFilters((f) => ({
-      ...f,
-      allocation: f.allocation === allocation ? 'All' : allocation,
-    }))
-  }
-
   return (
     <div className="page-shell py-3">
       <div className="flex flex-wrap items-stretch gap-2">
         <KpiCard
-          label="In view"
-          value={kpis.total}
-          accent="bg-slate-500"
+          label="Active"
+          value={kpis.active}
+          accent="bg-slate-700"
           active={false}
-          hint="People matching current filters"
+          hint="People still on the team. Click to clear filters."
           onClick={() =>
             setFilters((f) => ({
               ...f,
@@ -62,7 +70,7 @@ export default function KpiBar() {
           value={kpis.green}
           accent="bg-rag-green"
           active={filters.rag === 'GREEN'}
-          hint="Filter Ready (Green)"
+          hint="Filter Ready"
           onClick={() => toggleRag('GREEN')}
         />
         <KpiCard
@@ -70,7 +78,7 @@ export default function KpiBar() {
           value={kpis.amber}
           accent="bg-rag-amber"
           active={filters.rag === 'AMBER'}
-          hint="Filter Watch (Amber)"
+          hint="Filter Watch"
           onClick={() => toggleRag('AMBER')}
         />
         <KpiCard
@@ -78,24 +86,15 @@ export default function KpiBar() {
           value={kpis.red}
           accent="bg-rag-red"
           active={filters.rag === 'RED'}
-          hint="Filter At risk (Red)"
+          hint="Filter At risk"
           onClick={() => toggleRag('RED')}
         />
         <KpiCard
-          label="On project"
-          value={kpis.project}
-          accent="bg-tessolve-blue"
-          active={filters.allocation === 'Project'}
-          hint="Filter people on project"
-          onClick={() => toggleAllocation('Project')}
-        />
-        <KpiCard
-          label="On bench"
-          value={kpis.bench}
-          accent="bg-tessolve-orange"
-          active={filters.allocation === 'Bench'}
-          hint="Filter people on bench"
-          onClick={() => toggleAllocation('Bench')}
+          label="Departed"
+          value={kpis.departed}
+          accent="bg-slate-400"
+          active={false}
+          hint="People marked departed. Ready, Watch, and At risk add up to Active."
         />
       </div>
     </div>

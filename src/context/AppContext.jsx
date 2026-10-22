@@ -10,7 +10,7 @@ import { evaluateTeam, applyHierarchyRag } from '../utils/ragEvaluator'
 import { applyAttritionCascade } from '../utils/attritionCascade'
 import { aggregateClientRisk } from '../utils/clientRisk'
 import { collectSubtree, wouldCreateCycle } from '../utils/orgTree'
-import { persistRoster as writeRosterCsv } from '../utils/csvPersist'
+import { writeLinkedRoster } from '../utils/csvPersist'
 
 const AppContext = createContext(null)
 
@@ -101,17 +101,19 @@ export function AppProvider({ children }) {
     if (!people?.length) return null
 
     const run = async () => {
-      const result = await writeRosterCsv(people, fileHandleRef.current)
-      let msg =
-        result.method === 'file'
-          ? 'CSV saved to linked file'
-          : 'CSV downloaded (link a local file for auto-save)'
-      if (result.error) {
-        msg = `Linked file write failed — downloaded copy instead (${result.error})`
-      }
+      const result = await writeLinkedRoster(people, fileHandleRef.current)
       if (persistTimerRef.current) window.clearTimeout(persistTimerRef.current)
-      setPersistStatus(msg)
-      persistTimerRef.current = window.setTimeout(() => setPersistStatus(''), 4000)
+      if (result.method === 'file') {
+        setPersistStatus('CSV saved to linked file')
+        persistTimerRef.current = window.setTimeout(() => setPersistStatus(''), 4000)
+      } else if (result.method === 'error') {
+        setPersistStatus(
+          `Could not write linked file — use Export CSV (${result.error})`,
+        )
+        persistTimerRef.current = window.setTimeout(() => setPersistStatus(''), 4000)
+      } else {
+        setPersistStatus('')
+      }
       return result
     }
 
@@ -312,6 +314,7 @@ export function AppProvider({ children }) {
   const kpis = useMemo(() => {
     const pool = filteredEmployees
     const total = pool.length
+    const active = pool.filter((e) => !e.isDeparted).length
     const green = pool.filter(
       (e) => !e.isDeparted && e.ragStatus === 'GREEN',
     ).length
@@ -328,7 +331,7 @@ export function AppProvider({ children }) {
     const bench = pool.filter(
       (e) => !e.isDeparted && e.Allocation_Status === 'Bench',
     ).length
-    return { total, green, amber, red, departed, project, bench }
+    return { total, active, green, amber, red, departed, project, bench }
   }, [filteredEmployees])
 
   const activeFilterCount = useMemo(() => {

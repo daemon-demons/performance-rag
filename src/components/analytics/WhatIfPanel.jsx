@@ -91,7 +91,7 @@ export default function WhatIfPanel() {
           onClick={apply}
           className="rounded-lg bg-tessolve-navy px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-tessolve-navy-mid disabled:opacity-50"
         >
-          Apply & save CSV
+          Apply
         </button>
       </div>
 
