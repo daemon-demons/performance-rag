@@ -27,6 +27,7 @@ export function AppProvider({ children }) {
   const [fileHandle, setFileHandle] = useState(null)
   const fileHandleRef = useRef(null)
   const [persistStatus, setPersistStatus] = useState('')
+  const [loadWarnings, setLoadWarnings] = useState([])
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null)
   const [reorgPreview, setReorgPreview] = useState(null)
   const [filters, setFilters] = useState({
@@ -67,6 +68,9 @@ export function AppProvider({ children }) {
       fileHandleRef.current = handle
       setFileHandle(handle)
       setPersistStatus('')
+      setLoadWarnings(
+        Array.isArray(options.warnings) ? options.warnings.slice(0, 8) : [],
+      )
       setReorgPreview(null)
       setFilters({
         client: 'All',
@@ -85,6 +89,7 @@ export function AppProvider({ children }) {
     fileHandleRef.current = null
     setFileHandle(null)
     setPersistStatus('')
+    setLoadWarnings([])
     setReorgPreview(null)
     setFilters({
       client: 'All',
@@ -379,6 +384,8 @@ export function AppProvider({ children }) {
     applyAttritionPreview,
     persistRoster,
     persistStatus,
+    loadWarnings,
+    dismissLoadWarnings: () => setLoadWarnings([]),
     fileHandle,
     hasLinkedFile: Boolean(fileHandle),
     reorgPreview,

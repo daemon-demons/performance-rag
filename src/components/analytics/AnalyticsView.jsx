@@ -44,12 +44,40 @@ const RAG_COLORS = {
   RED: '#DC2626',
 }
 
+const FILTER_KEYS = ['client', 'role', 'rag', 'person', 'allocation']
+
 function loadSavedViews() {
   try {
-    return JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]')
+    const parsed = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]')
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((view) => view && typeof view.name === 'string' && view.filters)
+      .slice(0, 20)
+      .map((view) => ({
+        name: view.name.slice(0, 80),
+        filters: sanitizeFilters(view.filters),
+      }))
   } catch {
     return []
   }
+}
+
+function sanitizeFilters(filters) {
+  const next = {
+    client: 'All',
+    role: 'All',
+    rag: 'All',
+    person: 'All',
+    allocation: 'All',
+  }
+  if (!filters || typeof filters !== 'object') return next
+  for (const key of FILTER_KEYS) {
+    const value = filters[key]
+    if (typeof value === 'string' && value.length > 0 && value.length <= 80) {
+      next[key] = value
+    }
+  }
+  return next
 }
 
 export default function AnalyticsView() {
@@ -70,15 +98,15 @@ export default function AnalyticsView() {
 
   const heatmap = useMemo(() => buildSkillHeatmap(active), [active])
   const funnel = useMemo(() => buildRoleFunnel(active), [active])
-  const mentors = useMemo(() => buildMentorLoad(employees), [employees])
+  const mentors = useMemo(() => buildMentorLoad(filteredEmployees), [filteredEmployees])
   const capability = useMemo(() => buildCapabilitySpof(active), [active])
   const leadership = useMemo(
-    () => buildLeadershipScores(employees),
-    [employees],
+    () => buildLeadershipScores(filteredEmployees).filter((row) => row.reportCount > 0),
+    [filteredEmployees],
   )
   const insights = useMemo(
-    () => buildAutoInsights(employees, capability),
-    [employees, capability],
+    () => buildAutoInsights(filteredEmployees, capability),
+    [filteredEmployees, capability],
   )
   const teamRadar = useMemo(() => buildTeamMeanRadar(active), [active])
 
@@ -103,9 +131,9 @@ export default function AnalyticsView() {
     const name = window.prompt('Name this view', filters.client || 'My view')
     if (!name) return
     const next = [
-      ...savedViews.filter((v) => v.name !== name),
-      { name, filters: { ...filters } },
-    ]
+      ...savedViews.filter((v) => v.name !== name.slice(0, 80)),
+      { name: name.slice(0, 80), filters: sanitizeFilters(filters) },
+    ].slice(0, 20)
     setSavedViews(next)
     localStorage.setItem(VIEWS_KEY, JSON.stringify(next))
   }

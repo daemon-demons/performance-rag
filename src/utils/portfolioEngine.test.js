@@ -1,14 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
-  buildAllocationMix,
-  buildFocusMix,
-  buildTypeMix,
   buildBillingRunway,
-  buildCommitmentSwot,
   buildReadinessSummary,
   buildBookedByClient,
   buildAttentionList,
-  listCommitments,
 } from './portfolioEngine.js'
 
 const sample = [
@@ -72,25 +67,6 @@ const sample = [
 ]
 
 describe('portfolioEngine', () => {
-  it('splits project vs bench', () => {
-    const mix = buildAllocationMix(sample)
-    expect(mix.project).toBe(2)
-    expect(mix.bench).toBe(1)
-  })
-
-  it('counts focus among project people only', () => {
-    const mix = buildFocusMix(sample)
-    expect(mix.NPI).toBe(1)
-    expect(mix.Sustaining).toBe(1)
-    expect(mix.total).toBe(2)
-  })
-
-  it('counts FT and WS among project people', () => {
-    const mix = buildTypeMix(sample)
-    expect(mix.FT).toBe(1)
-    expect(mix.WS).toBe(1)
-  })
-
   it('flags low billing runway', () => {
     const runway = buildBillingRunway(sample)
     expect(runway.lowAlerts.some((r) => r.client === 'Client Q')).toBe(true)
@@ -104,14 +80,6 @@ describe('portfolioEngine', () => {
     expect(booked.chart).toEqual([
       { name: 'Client Q', NPI: 1, Sustaining: 1, FT: 1, WS: 1, Both: 0 },
     ])
-  })
-
-  it('lists commitments and builds SWOT', () => {
-    expect(listCommitments(sample)).toContain('Q WS bringup')
-    const swot = buildCommitmentSwot(sample, 'Q WS bringup')
-    expect(swot.strengths.length).toBeGreaterThan(0)
-    expect(swot.gaps.length).toBeGreaterThan(0)
-    expect(swot.opportunities.some((o) => o.text.includes('Cara'))).toBe(true)
   })
 
   it('summarizes readiness', () => {

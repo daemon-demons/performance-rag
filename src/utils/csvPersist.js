@@ -10,6 +10,13 @@ function boolToCsv(value) {
   return value ? 'TRUE' : 'FALSE'
 }
 
+/** Keep a cell from being read as a formula when the file is opened in a spreadsheet. */
+function csvSafe(value) {
+  const text = String(value)
+  if (/^[=+\-@\t\r]/.test(text)) return `'${text}`
+  return text
+}
+
 /** Serialize raw employee records back to CSV text (schema + Is_Departed). */
 export function employeesToCsv(employees) {
   const data = (employees || []).map((row) => {
@@ -20,8 +27,10 @@ export function employeesToCsv(employees) {
         out[col] = boolToCsv(Boolean(val))
       } else if (val === null || val === undefined) {
         out[col] = ''
+      } else if (typeof val === 'number') {
+        out[col] = Number.isFinite(val) ? val : ''
       } else {
-        out[col] = val
+        out[col] = csvSafe(val)
       }
     }
     for (const col of OPTIONAL_BOOLEAN_COLUMNS) {

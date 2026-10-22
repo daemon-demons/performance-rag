@@ -1,7 +1,6 @@
 /**
  * Portfolio aggregations for the manager Dashboard.
  */
-import { isHighSkill } from './scoreMaps'
 
 function activePeople(employees) {
   return (employees || []).filter((e) => !e.isDeparted)
@@ -9,10 +8,6 @@ function activePeople(employees) {
 
 function isProject(e) {
   return String(e.Allocation_Status || 'Project') === 'Project'
-}
-
-function isBench(e) {
-  return String(e.Allocation_Status || '') === 'Bench'
 }
 
 function classifyProjectType(projectType) {
@@ -27,62 +22,6 @@ function classifyProjectType(projectType) {
     return 'WS'
   }
   return 'FT'
-}
-
-/** Project vs Bench headcount among active people. */
-export function buildAllocationMix(employees) {
-  const active = activePeople(employees)
-  let project = 0
-  let bench = 0
-  for (const e of active) {
-    if (isBench(e)) bench += 1
-    else project += 1
-  }
-  return {
-    project,
-    bench,
-    total: active.length,
-    chart: [
-      { name: 'On project', value: project, key: 'Project' },
-      { name: 'On bench', value: bench, key: 'Bench' },
-    ],
-  }
-}
-
-/** NPI / Sustaining among project-allocated people. */
-export function buildFocusMix(employees) {
-  const projectPeople = activePeople(employees).filter(isProject)
-  const counts = { NPI: 0, Sustaining: 0 }
-  for (const e of projectPeople) {
-    const f = e.Product_Focus
-    if (f === 'NPI' || f === 'Sustaining') counts[f] += 1
-  }
-  return {
-    ...counts,
-    total: projectPeople.length,
-    chart: [
-      { name: 'NPI', value: counts.NPI },
-      { name: 'Sustaining', value: counts.Sustaining },
-    ],
-  }
-}
-
-/** FT / WS / Both among project-allocated people. */
-export function buildTypeMix(employees) {
-  const projectPeople = activePeople(employees).filter(isProject)
-  const counts = { FT: 0, WS: 0, Both: 0 }
-  for (const e of projectPeople) {
-    counts[classifyProjectType(e.Project_Type)] += 1
-  }
-  return {
-    ...counts,
-    total: projectPeople.length,
-    chart: [
-      { name: 'FT', value: counts.FT },
-      { name: 'WS', value: counts.WS },
-      { name: 'Both', value: counts.Both },
-    ],
-  }
 }
 
 /**
@@ -150,96 +89,6 @@ export function buildBillingRunway(employees) {
       lowRunway: r.lowRunway,
     })),
     lowAlerts: rows.filter((r) => r.lowRunway),
-  }
-}
-
-export function listCommitments(employees) {
-  const set = new Set()
-  for (const e of activePeople(employees)) {
-    const c = String(e.Upcoming_Commitment || '').trim()
-    if (c) set.add(c)
-  }
-  return [...set].sort((a, b) => a.localeCompare(b))
-}
-
-/**
- * Rule-based SWOT for an upcoming commitment name.
- */
-export function buildCommitmentSwot(employees, commitment) {
-  const name = String(commitment || '').trim()
-  const active = activePeople(employees)
-  const tagged = name
-    ? active.filter(
-        (e) => String(e.Upcoming_Commitment || '').trim() === name,
-      )
-    : []
-  const clients = [
-    ...new Set(tagged.map((e) => e.Client).filter(Boolean)),
-  ]
-
-  const strengths = []
-  const gaps = []
-  const opportunities = []
-  const risks = []
-
-  for (const e of tagged) {
-    if (e.ragStatus === 'GREEN' && isHighSkill(e)) {
-      strengths.push({
-        id: e.id,
-        text: `${e.Employee_Name} is Ready with strong platform skills`,
-      })
-    }
-    if (e.ragStatus === 'AMBER' || e.ragStatus === 'RED') {
-      const fails = (e.failedResponsibilities || []).slice(0, 2)
-      const extra = fails.length ? ` (${fails.join(', ')})` : ''
-      gaps.push({
-        id: e.id,
-        text: `${e.Employee_Name} is ${e.ragStatus === 'RED' ? 'At risk' : 'Watch'}${extra}`,
-      })
-    }
-    const months = Number(e.Billing_Months_Remaining) || 0
-    if (isProject(e) && months < 2) {
-      risks.push({
-        id: e.id,
-        text: `${e.Employee_Name} has only ${months} month(s) of billing left`,
-      })
-    }
-  }
-
-  const needSc = tagged.some((e) => e.SC_Experience)
-  const needSod = tagged.some((e) => e.SOD_Handling)
-  for (const e of active.filter(isBench)) {
-    const match =
-      (needSc && e.SC_Experience) ||
-      (needSod && e.SOD_Handling) ||
-      isHighSkill(e) ||
-      (e.CONT_Status === 'Bringup')
-    if (match) {
-      opportunities.push({
-        id: e.id,
-        text: `${e.Employee_Name} is on bench and can help (${e.Role})`,
-      })
-    }
-  }
-
-  for (const client of clients) {
-    const onClient = active.filter((e) => e.Client === client && isProject(e))
-    const skilled = onClient.filter(isHighSkill)
-    if (skilled.length < 2) {
-      risks.push({
-        id: `spof-${client}`,
-        text: `${client} has a single point of failure — fewer than 2 strong people on project`,
-      })
-    }
-  }
-
-  return {
-    commitment: name,
-    clients,
-    strengths: strengths.slice(0, 6),
-    gaps: gaps.slice(0, 6),
-    opportunities: opportunities.slice(0, 6),
-    risks: risks.slice(0, 6),
   }
 }
 

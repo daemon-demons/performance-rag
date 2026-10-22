@@ -97,6 +97,12 @@ function round2(n) {
   return Math.round(n * 100) / 100
 }
 
+function clampSkill(value) {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return 0
+  return Math.min(10, Math.max(0, n))
+}
+
 function boolScore(v, yes = 8, no = 0) {
   return v ? yes : no
 }
@@ -178,12 +184,12 @@ export function evaluateEmployee(employee) {
   const product = PRODUCT_MAP[employee.Product_Focus] ?? 5
   const demand = DEMAND_MAP[employee.Client_Demand] ?? 5
   const projections = boolScore(employee.Project_Projections_Current)
-  const hvm = Number(employee.CS_ES_HVM_Releases) || 0
+  const hvm = clampSkill(employee.CS_ES_HVM_Releases)
 
   const Delivery_Score = avg([product, demand, projections, hvm])
 
   const ip = IP_MAP[employee.IP_Debug_Level] ?? 2
-  const tml = Number(employee.TML_Scripting) || 0
+  const tml = clampSkill(employee.TML_Scripting)
   const Depth_Score = avg([ip, tml])
 
   const Overall_Score =

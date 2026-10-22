@@ -289,19 +289,12 @@ export function buildAutoInsights(employees, capabilitySpof) {
     }
   }
 
-  const ws = active.filter((e) =>
-    String(e.Project_Type || '')
-      .toUpperCase()
-      .includes('WS'),
-  )
-  const ft = active.filter((e) =>
-    String(e.Project_Type || '')
-      .toUpperCase()
-      .includes('FT'),
-  )
-  if (ws.length || ft.length) {
+  const ws = active.filter((e) => String(e.Project_Type || '').toUpperCase() === 'WS')
+  const ft = active.filter((e) => String(e.Project_Type || '').toUpperCase() === 'FT')
+  const both = active.filter((e) => String(e.Project_Type || '').toUpperCase() === 'BOTH')
+  if (ws.length || ft.length || both.length) {
     insights.push(
-      `Project mix: ${ws.length} on WS, ${ft.length} on FT (distinct types).`,
+      `Project mix: ${ws.length} on WS, ${ft.length} on FT, ${both.length} on Both.`,
     )
   }
 

@@ -129,4 +129,13 @@ describe('applyHierarchyRag', () => {
     expect(lead.ragStatus).toBe('RED')
     expect(lead.hierarchyAdjusted).toBe(true)
   })
+
+  it('clamps skill numbers that sit outside 0 to 10', () => {
+    const scored = evaluateEmployee(
+      baseEmployee({ TML_Scripting: 100, CS_ES_HVM_Releases: 80 }),
+    )
+    expect(scored.Depth_Score).toBeLessThanOrEqual(10)
+    expect(scored.Delivery_Score).toBeLessThanOrEqual(10)
+    expect(scored.Overall_Score).toBeLessThanOrEqual(10)
+  })
 })

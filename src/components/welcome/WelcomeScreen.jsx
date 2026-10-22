@@ -29,7 +29,7 @@ export default function WelcomeScreen() {
       })
       return false
     }
-    loadEmployees(result.employees, options)
+    loadEmployees(result.employees, { ...options, warnings: result.warnings || [] })
     navigate('/dashboard')
     return true
   }

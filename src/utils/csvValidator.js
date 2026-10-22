@@ -9,13 +9,14 @@ import {
 } from './csvSchema'
 import { findReportingCycles } from './orgTree'
 
-function parseBoolean(value) {
+function parseBoolean(value, onUnknown) {
   if (typeof value === 'boolean') return value
   if (value === null || value === undefined) return false
   const normalized = String(value).trim().toLowerCase()
   if (['true', '1', 'yes', 'y', 'known'].includes(normalized)) return true
   if (['false', '0', 'no', 'n', '', 'unknown'].includes(normalized)) return false
-  return Boolean(normalized)
+  if (onUnknown) onUnknown(normalized)
+  return false
 }
 
 function parseNumber(value) {
@@ -151,17 +152,22 @@ export function validateAndParseCsvText(text) {
     transformHeader: (h) => h.trim(),
   })
 
-  if (parsed.errors?.length) {
-    const parseErrors = parsed.errors
-      .slice(0, 5)
-      .map((e) => e.message || 'Parse error')
+  const parseErrors = parsed.errors || []
+  const fatal = parseErrors.filter((error) => error.type === 'Quotes')
+  if (fatal.length) {
     return {
       ok: false,
-      errors: ['CSV format appears invalid.', ...parseErrors],
+      errors: [
+        'CSV format appears invalid.',
+        ...fatal.slice(0, 5).map((error) => error.message || 'Parse error'),
+      ],
       missingColumns: [],
       warnings: [],
     }
   }
+  const parseWarnings = parseErrors.slice(0, 5).map(
+    (error) => error.message || 'A row could not be read completely.',
+  )
 
   const headers = parsed.meta?.fields || []
   if (!headers.length) {
@@ -211,14 +217,22 @@ export function validateAndParseCsvText(text) {
   }
 
   const hasDepartedCol = headers.includes('Is_Departed')
-  const rowWarnings = []
+  const rowWarnings = [...parseWarnings]
 
   const employees = rows
     .filter((row) => row.Employee_Name && String(row.Employee_Name).trim())
     .map((row, index) => {
+      const name = String(row.Employee_Name).trim()
+      const noteUnknown = (column, raw) => {
+        rowWarnings.push(
+          `${name}: ${column} value "${raw}" was not recognized and was treated as false.`,
+        )
+      }
       const employee = {
-        id: `emp-${index}-${String(row.Employee_Name).trim()}`,
-        isDeparted: hasDepartedCol ? parseBoolean(row.Is_Departed) : false,
+        id: `emp-${index}-${name}`,
+        isDeparted: hasDepartedCol
+          ? parseBoolean(row.Is_Departed, (raw) => noteUnknown('Is_Departed', raw))
+          : false,
       }
 
       for (const col of META_COLUMNS) {
@@ -241,7 +255,7 @@ export function validateAndParseCsvText(text) {
         ) {
           continue
         }
-        employee[col] = parseBoolean(row[col])
+        employee[col] = parseBoolean(row[col], (raw) => noteUnknown(col, raw))
       }
 
       if (!hasNewSmt && hasLegacySmt) {

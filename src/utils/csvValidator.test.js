@@ -104,6 +104,44 @@ describe('csvValidator', () => {
     expect(again.employees[0].isDeparted).toBe(true)
   })
 
+  it('prefixes a spreadsheet formula in an exported name', () => {
+    const csv = employeesToCsv([
+      {
+        Employee_Name: '=cmd|calc',
+        Role: 'Eng 1',
+        Reports_To: '',
+        Mentor_Name: '',
+        Client: 'X',
+        Project_Type: 'FT',
+        Allocation_Status: 'Project',
+        Billing_Months_Remaining: 2,
+        Upcoming_Commitment: '',
+        SMT_7_Known: false,
+        SMT_8_Known: false,
+        Other_Testers: false,
+        SC_Experience: false,
+        SOD_Handling: false,
+        CONT_Status: 'Debug',
+        DBD_Bringup: false,
+        Product_Focus: 'NPI',
+        IP_Debug_Level: 'None',
+        Client_Demand: 'Low',
+        Project_Projections_Current: false,
+        TML_Scripting: 2,
+        CS_ES_HVM_Releases: 2,
+        Is_Independent: true,
+        Does_Automation_Scripting: false,
+        Handles_1_on_1_Mentoring: false,
+        Produces_Documentation: false,
+        Runs_Classroom_Training: false,
+        Manages_Project_Deliverables: false,
+        Manages_Multiple_Clients: false,
+        isDeparted: false,
+      },
+    ])
+    expect(csv).toContain("'=cmd|calc")
+  })
+
   it('matches generated sample embed to required headers', () => {
     const generated = generateSampleCsvString()
     const header = generated.trim().split('\n')[0]
@@ -166,6 +204,20 @@ describe('csvValidator', () => {
     expect(result.employees[0].Project_Type).toBe('WS')
     expect(
       result.warnings?.some((w) => /NPI/i.test(w) && /Both|Project_Type/i.test(w)),
+    ).toBe(true)
+  })
+
+  it('treats an unrecognized boolean as false and warns', () => {
+    const text = readFileSync(samplePath, 'utf8').replace(
+      'review,TRUE,TRUE,',
+      'review,MAYBE,TRUE,',
+    )
+    const result = validateAndParseCsvText(text)
+    expect(result.ok).toBe(true)
+    expect(result.employees[0].SMT_7_Known).toBe(false)
+    expect(result.employees[0].SMT_8_Known).toBe(true)
+    expect(
+      result.warnings.some((warning) => warning.includes('SMT_7_Known')),
     ).toBe(true)
   })
 })
