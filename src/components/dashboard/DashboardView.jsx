@@ -1,8 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   BarChart,
   Bar,
@@ -10,61 +8,204 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
 } from 'recharts'
 import { useApp } from '../../context/AppContext'
-import ClientRiskPanel from '../risk/ClientRiskPanel'
 import {
-  buildAllocationMix,
-  buildFocusMix,
-  buildTypeMix,
+  buildBookedByClient,
   buildBillingRunway,
-  buildCommitmentSwot,
-  listCommitments,
-  buildReadinessSummary,
+  buildAttentionList,
 } from '../../utils/portfolioEngine'
+import {
+  buildLeadershipScores,
+  buildMentorLoad,
+  buildRoleFunnel,
+} from '../../utils/analyticsEngine'
+import { buildHierarchyIssues, buildTeamBalance } from '../../utils/teamShape'
 
-const PIE_COLORS = ['#23A6E3', '#F2802B', '#64748b', '#16A34A']
+const READY = '#16A34A'
+const WATCH = '#D97706'
+const AT_RISK = '#DC2626'
+const CHART_MARGIN = { top: 12, right: 12, bottom: 0, left: 0 }
 
-function Card({ title, caption, children, className = '' }) {
+function LegendDot({ color, label, dashed = false }) {
   return (
-    <div className={`card-plush ${className}`}>
-      <h3 className="text-sm font-semibold text-tessolve-navy">{title}</h3>
-      {caption && (
-        <p className="mt-0.5 text-xs leading-snug text-slate-500">{caption}</p>
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className={`h-2 w-3 shrink-0 rounded-[2px] ${dashed ? 'border border-dashed' : ''}`}
+        style={dashed ? { borderColor: color } : { backgroundColor: color }}
+      />
+      {label}
+    </span>
+  )
+}
+
+function Plot({ children, legend }) {
+  return (
+    <div>
+      <div className="h-56">{children}</div>
+      <div className="mt-3 flex h-4 items-center justify-center gap-x-3 type-secondary">
+        {legend}
+      </div>
+    </div>
+  )
+}
+
+function StackedBars({ data, bars, empty }) {
+  return (
+    <Plot
+      legend={bars.map((bar) => (
+        <LegendDot key={bar.key} color={bar.fill} label={bar.label || bar.key} />
+      ))}
+    >
+      {data.length === 0 ? (
+        <div className="flex h-full items-center justify-center px-4 text-center text-sm text-slate-500">
+          {empty}
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={CHART_MARGIN}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={32} />
+            <Tooltip />
+            {bars.map((bar) => (
+              <Bar
+                key={bar.key}
+                dataKey={bar.key}
+                name={bar.label || bar.key}
+                stackId="mix"
+                fill={bar.fill}
+                className={bar.onClick ? 'cursor-pointer' : undefined}
+                onClick={
+                  bar.onClick
+                    ? (row) => bar.onClick(row?.name || row?.payload?.name)
+                    : undefined
+                }
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
       )}
+    </Plot>
+  )
+}
+
+function ChartBlock({ title, label, children }) {
+  return (
+    <div role="group" aria-label={label}>
+      <h3 className="type-title">{title}</h3>
       <div className="mt-3">{children}</div>
     </div>
   )
 }
 
-function SwotColumn({ title, tone, items, onPerson }) {
-  const tones = {
-    strength: 'border-emerald-200 bg-emerald-50/80',
-    gap: 'border-amber-200 bg-amber-50/80',
-    opportunity: 'border-sky-200 bg-sky-50/80',
-    risk: 'border-red-200 bg-red-50/80',
-  }
+const REASON_TEXT = {
+  'at-risk': { label: 'At risk', className: 'text-status-risk' },
+  projections: { label: 'Projections not current', className: 'text-status-watch' },
+  spof: { label: 'Single point of failure', className: 'text-ink' },
+  failed: { label: 'Failed', className: 'text-status-risk' },
+}
+
+function scoreFill(score) {
+  if (score >= 70) return READY
+  if (score >= 40) return WATCH
+  return AT_RISK
+}
+
+function MixBars({ data, empty, label, onName, plotClass = '' }) {
+  const style = plotClass ? undefined : { height: Math.max(160, data.length * 32 + 24) }
   return (
-    <div className={`rounded-xl border p-3 ${tones[tone]}`}>
-      <p className="text-xs font-semibold tracking-wide text-slate-700 uppercase">
-        {title}
-      </p>
-      {!items.length ? (
-        <p className="mt-2 text-xs text-slate-500">None flagged.</p>
+    <div role="group" aria-label={label} className={plotClass} style={style}>
+      {data.length === 0 ? (
+        <div className="flex h-full items-center justify-center text-center type-secondary">
+          {empty}
+        </div>
       ) : (
-        <ul className="mt-2 space-y-1.5">
-          {items.map((item) => (
-            <li key={item.id + item.text}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} layout="vertical" margin={CHART_MARGIN}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+            <YAxis type="category" dataKey="name" width={108} tick={{ fontSize: 11 }} />
+            <Tooltip />
+            {['Ready', 'Watch', 'At risk'].map((key) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                stackId="mix"
+                fill={key === 'Ready' ? READY : key === 'Watch' ? WATCH : AT_RISK}
+                className={onName ? 'cursor-pointer' : undefined}
+                onClick={
+                  onName
+                    ? (row) => onName(row?.name || row?.payload?.name)
+                    : undefined
+                }
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  )
+}
+
+function AttentionPanel({ groups, onClient, onAtRisk }) {
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <h2 className="type-title">Exceptions</h2>
+      {!groups.length ? (
+        <p className="type-secondary mt-6">No one needs monitoring in this view.</p>
+      ) : (
+        <div className="mt-6 min-h-0 flex-1 space-y-6 overflow-y-auto">
+          {groups.map((group) => (
+            <section key={group.client}>
               <button
                 type="button"
-                onClick={() => item.id && !String(item.id).startsWith('spof') && onPerson?.(item.id)}
-                className="text-left text-xs leading-snug text-slate-700 transition hover:text-tessolve-navy hover:underline"
+                onClick={() => onClient(group.client)}
+                className="hit text-left font-semibold text-tessolve-navy"
               >
-                {item.text}
+                {group.client}
+                <span className="ml-3 font-normal type-secondary">
+                  {group.people.length}
+                </span>
               </button>
-            </li>
+              <ul className="mt-3">
+                {group.people.map((person) => (
+                  <li
+                    key={person.id}
+                    className="flex flex-wrap items-baseline gap-3 border-b border-hairline py-3"
+                  >
+                    <p className="font-medium text-ink">{person.name}</p>
+                    <p className="type-secondary">{person.billingMonths} mo</p>
+                    <div className="flex flex-wrap gap-3">
+                      {person.reasons.map((reason) => {
+                        const meta = REASON_TEXT[reason.id]
+                        const label =
+                          reason.id === 'failed'
+                            ? `Failed ${reason.count}`
+                            : meta.label
+                        return (
+                          <button
+                            key={reason.id}
+                            type="button"
+                            onClick={() =>
+                              reason.id === 'at-risk'
+                                ? onAtRisk(person.client)
+                                : onClient(person.client)
+                            }
+                            className={`hit font-medium ${meta.className}`}
+                          >
+                            {label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )
@@ -74,10 +215,7 @@ export default function DashboardView() {
   const {
     filteredEmployees,
     clientRisk,
-    filters,
     setFilters,
-    kpis,
-    setSelectedEmployeeId,
   } = useApp()
 
   const active = useMemo(
@@ -85,231 +223,145 @@ export default function DashboardView() {
     [filteredEmployees],
   )
 
-  const readiness = useMemo(() => buildReadinessSummary(active), [active])
-  const allocation = useMemo(() => buildAllocationMix(active), [active])
-  const focusMix = useMemo(() => buildFocusMix(active), [active])
-  const typeMix = useMemo(() => buildTypeMix(active), [active])
+  const booked = useMemo(() => buildBookedByClient(active), [active])
   const billing = useMemo(() => buildBillingRunway(active), [active])
-  const commitments = useMemo(() => listCommitments(active), [active])
-
-  const [commitment, setCommitment] = useState('')
-  const selectedCommitment = commitment || commitments[0] || ''
-  const swot = useMemo(
-    () => buildCommitmentSwot(active, selectedCommitment),
-    [active, selectedCommitment],
+  const readinessByClient = useMemo(
+    () =>
+      (clientRisk.clients || [])
+        .filter((c) => c.green + c.amber + c.red > 0)
+        .map((c) => ({
+          name: c.client,
+          Ready: c.green,
+          Watch: c.amber,
+          'At risk': c.red,
+        })),
+    [clientRisk.clients],
+  )
+  const attention = useMemo(
+    () => buildAttentionList(active, clientRisk.spofAlerts),
+    [active, clientRisk.spofAlerts],
+  )
+  const balance = useMemo(() => buildTeamBalance(active), [active])
+  const issues = useMemo(
+    () => buildHierarchyIssues(filteredEmployees),
+    [filteredEmployees],
+  )
+  const funnel = useMemo(
+    () =>
+      buildRoleFunnel(active).map((row) => ({
+        name: row.role,
+        Ready: row.green,
+        Watch: row.amber,
+        'At risk': row.red,
+      })),
+    [active],
+  )
+  const mentors = useMemo(
+    () =>
+      buildMentorLoad(filteredEmployees).map((row) => ({
+        name: row.mentor,
+        Ready: row.green,
+        Watch: row.amber,
+        'At risk': row.red,
+      })),
+    [filteredEmployees],
+  )
+  const leaders = useMemo(
+    () =>
+      buildLeadershipScores(filteredEmployees)
+        .filter((row) => row.reportCount > 0)
+        .map((row) => ({
+          id: row.id,
+          name: `${row.name} · ${row.reportCount}`,
+          score: row.score,
+        })),
+    [filteredEmployees],
   )
 
-  const filterNote =
-    filters.client !== 'All' ? ` · filtered to ${filters.client}` : ''
+  const toggleClientStatus = (client, rag) => {
+    if (!client) return
+    setFilters((f) => {
+      const same = f.client === client && f.rag === rag
+      return {
+        ...f,
+        client: same ? 'All' : client,
+        rag: same ? 'All' : rag,
+      }
+    })
+  }
+
+  const toggleClient = (client) => {
+    if (!client) return
+    setFilters((f) => ({
+      ...f,
+      client: f.client === client ? 'All' : client,
+    }))
+  }
+
+  const toggleRole = (role) => {
+    if (!role) return
+    setFilters((f) => ({
+      ...f,
+      role: f.role === role ? 'All' : role,
+    }))
+  }
+
+  const seniorGrow = balance.senior || (balance.junior ? 0 : 1)
+  const juniorGrow = balance.junior || (balance.senior ? 0 : 1)
 
   return (
-    <div className="page-shell space-y-4 pb-10">
-      <section className="animate-fade-up rounded-2xl border border-tessolve-blue/20 bg-gradient-to-r from-tessolve-navy to-tessolve-navy-mid px-4 py-4 text-white shadow-md sm:px-5">
-        <p className="font-display text-xs font-semibold tracking-wide text-tessolve-orange uppercase">
-          Team readiness for delivery
-        </p>
-        <h2 className="mt-1 font-display text-xl font-semibold sm:text-2xl">
-          See who is ready, who is billed, and where the next commitment is at
-          risk
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm text-slate-300">
-          Ready / Watch / At risk is based on skills and role expectations.
-          Click tiles or the allocation chart to filter; click a name to open
-          their profile.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-white/10 px-2.5 py-1">
-            {readiness.ready} Ready
-          </span>
-          <span className="rounded-full bg-white/10 px-2.5 py-1">
-            {readiness.watch} Watch
-          </span>
-          <span className="rounded-full bg-white/10 px-2.5 py-1">
-            {readiness.atRisk} At risk
-          </span>
-          <span className="rounded-full bg-white/10 px-2.5 py-1">
-            {allocation.project} on project · {allocation.bench} on bench
-          </span>
-          {billing.lowAlerts.length > 0 && (
-            <span className="rounded-full bg-rag-red/90 px-2.5 py-1 font-medium">
-              {billing.lowAlerts.length} client(s) with &lt;2 months billing
-            </span>
-          )}
-        </div>
-      </section>
+    <div className="page-shell flex flex-col gap-6 pb-6">
+    <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <section className="panel flex h-full flex-col p-6" aria-label="Client position">
+        <h2 className="type-title">Client position</h2>
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <ChartBlock
+          title="Readiness by client"
+          label="Readiness by client. Ready, Watch, and At risk on each client."
+        >
+          <StackedBars
+            data={readinessByClient}
+            empty="No people in view — clear filters."
+            bars={[
+              {
+                key: 'Ready',
+                fill: READY,
+                onClick: (client) => toggleClientStatus(client, 'GREEN'),
+              },
+              {
+                key: 'Watch',
+                fill: WATCH,
+                onClick: (client) => toggleClientStatus(client, 'AMBER'),
+              },
+              {
+                key: 'At risk',
+                fill: AT_RISK,
+                onClick: (client) => toggleClientStatus(client, 'RED'),
+              },
+            ]}
+          />
+        </ChartBlock>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <button
-          type="button"
-          onClick={() =>
-            setFilters((f) => ({
-              ...f,
-              rag: f.rag === 'GREEN' ? 'All' : 'GREEN',
-            }))
-          }
-          className="card-plush-interactive text-left"
+        <ChartBlock
+          title="Shortest billing left"
+          label="Shortest billing left. Fewest months left on each client. A red bar is under 2 months."
         >
-          <p className="text-[11px] text-slate-500 uppercase">Ready</p>
-          <p className="font-display text-2xl font-semibold text-rag-green">
-            {kpis.green}
-          </p>
-          <p className="text-xs text-slate-500">Click to filter Green</p>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setFilters((f) => ({
-              ...f,
-              rag: f.rag === 'AMBER' ? 'All' : 'AMBER',
-            }))
-          }
-          className="card-plush-interactive text-left"
-        >
-          <p className="text-[11px] text-slate-500 uppercase">Watch</p>
-          <p className="font-display text-2xl font-semibold text-rag-amber">
-            {kpis.amber}
-          </p>
-          <p className="text-xs text-slate-500">Click to filter Amber</p>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setFilters((f) => ({
-              ...f,
-              allocation: f.allocation === 'Project' ? 'All' : 'Project',
-            }))
-          }
-          className="card-plush-interactive text-left"
-        >
-          <p className="text-[11px] text-slate-500 uppercase">On project</p>
-          <p className="font-display text-2xl font-semibold text-tessolve-blue">
-            {kpis.project}
-          </p>
-          <p className="text-xs text-slate-500">
-            of {active.length} active{filterNote}
-          </p>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setFilters((f) => ({
-              ...f,
-              allocation: f.allocation === 'Bench' ? 'All' : 'Bench',
-            }))
-          }
-          className="card-plush-interactive text-left"
-        >
-          <p className="text-[11px] text-slate-500 uppercase">On bench</p>
-          <p className="font-display text-2xl font-semibold text-tessolve-orange">
-            {kpis.bench}
-          </p>
-          <p className="text-xs text-slate-500">Available for next work</p>
-        </button>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card
-          title="Project vs bench"
-          caption={`${allocation.project} of ${allocation.total} people are on project work.`}
-        >
-          {allocation.total === 0 ? (
-            <p className="text-sm text-slate-500">No people — clear filters.</p>
-          ) : (
-            <div className="h-44">
+          <Plot
+            legend={
+              <LegendDot color={AT_RISK} label="2 months" dashed />
+            }
+          >
+            {billing.chart.length === 0 ? (
+              <div className="flex h-full items-center justify-center px-4 text-center text-sm text-slate-500">
+                No project billing data in view.
+              </div>
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={allocation.chart}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={42}
-                    outerRadius={68}
-                    paddingAngle={2}
-                    onClick={(d) => {
-                      if (d?.key) {
-                        setFilters((f) => ({
-                          ...f,
-                          allocation:
-                            f.allocation === d.key ? 'All' : d.key,
-                        }))
-                      }
-                    }}
-                  >
-                    {allocation.chart.map((entry, i) => (
-                      <Cell
-                        key={entry.name}
-                        fill={PIE_COLORS[i % PIE_COLORS.length]}
-                        className="cursor-pointer"
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
-
-        <Card
-          title="NPI vs Sustaining"
-          caption={`Among people on project: how many focus on NPI or Sustaining.`}
-        >
-          {focusMix.total === 0 ? (
-            <p className="text-sm text-slate-500">
-              No project people in view — clear filters.
-            </p>
-          ) : (
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={focusMix.chart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#23A6E3" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
-
-        <Card
-          title="FT / WS / Both"
-          caption="Project types among people on project (WS, FT, or Both)."
-        >
-          {typeMix.total === 0 ? (
-            <p className="text-sm text-slate-500">
-              No project people in view — clear filters.
-            </p>
-          ) : (
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={typeMix.chart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#F2802B" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card
-          title="Months of billing left"
-          caption="Average billing runway by client for people on project. Bars use client brand colors."
-        >
-          {billing.chart.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              No project billing data in view.
-            </p>
-          ) : (
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={billing.chart} layout="vertical" margin={{ left: 8 }}>
+                <BarChart
+                  data={billing.chart}
+                  layout="vertical"
+                  margin={CHART_MARGIN}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis
@@ -319,86 +371,164 @@ export default function DashboardView() {
                     tick={{ fontSize: 11 }}
                   />
                   <Tooltip />
-                  <Bar dataKey="months" radius={[0, 4, 4, 0]}>
+                  <ReferenceLine x={2} stroke={AT_RISK} strokeDasharray="4 4" />
+                  <Bar
+                    dataKey="shortest"
+                    name="Shortest months"
+                    radius={[0, 4, 4, 0]}
+                    className="cursor-pointer"
+                    onClick={(row) =>
+                      toggleClient(row?.name || row?.payload?.name)
+                    }
+                  >
                     {billing.chart.map((entry) => (
                       <Cell key={entry.name} fill={entry.fill} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
-
-        <Card
-          title="Commitment SWOT"
-          caption="Strengths, gaps, available bench, and risks for an upcoming commitment."
+            )}
+          </Plot>
+        </ChartBlock>
+        <ChartBlock
+          title="NPI vs Sustaining"
+          label="NPI versus Sustaining. People on project, by client."
         >
-          <label className="mb-3 block text-xs text-slate-500">
-            Upcoming commitment
-            <select
-              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm shadow-sm"
-              value={selectedCommitment}
-              onChange={(e) => setCommitment(e.target.value)}
-            >
-              {!commitments.length && (
-                <option value="">No commitments in CSV</option>
-              )}
-              {commitments.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selectedCommitment ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <SwotColumn
-                title="Strengths"
-                tone="strength"
-                items={swot.strengths}
-                onPerson={setSelectedEmployeeId}
-              />
-              <SwotColumn
-                title="Gaps"
-                tone="gap"
-                items={swot.gaps}
-                onPerson={setSelectedEmployeeId}
-              />
-              <SwotColumn
-                title="Available bench"
-                tone="opportunity"
-                items={swot.opportunities}
-                onPerson={setSelectedEmployeeId}
-              />
-              <SwotColumn
-                title="Risks"
-                tone="risk"
-                items={swot.risks}
-                onPerson={setSelectedEmployeeId}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500">
-              Add Upcoming_Commitment in the CSV to evaluate commitments.
-            </p>
-          )}
-        </Card>
-      </div>
+          <StackedBars
+            data={booked.chart}
+            empty="No project people in view — clear filters."
+            bars={[
+              { key: 'NPI', fill: '#23A6E3', onClick: toggleClient },
+              { key: 'Sustaining', fill: '#1E3A5F', onClick: toggleClient },
+            ]}
+          />
+        </ChartBlock>
 
-      <div>
-        <h3 className="mb-1 text-sm font-semibold text-tessolve-navy">
-          Client health
-        </h3>
-        <p className="mb-3 text-xs text-slate-500">
-          Single point of failure = fewer than 2 strong people on that client
-          (SMT 8 known or Platform ≥ 8).
-        </p>
-        <ClientRiskPanel
-          clients={clientRisk.clients}
-          spofAlerts={clientRisk.spofAlerts}
+        <ChartBlock
+          title="FT, WS, and Both"
+          label="FT, WS, and Both. Tester type among people on project, by client."
+        >
+          <StackedBars
+            data={booked.chart}
+            empty="No project people in view — clear filters."
+            bars={[
+              { key: 'FT', fill: '#F2802B', onClick: toggleClient },
+              { key: 'WS', fill: '#23A6E3', onClick: toggleClient },
+              { key: 'Both', fill: '#64748B', onClick: toggleClient },
+            ]}
+          />
+        </ChartBlock>
+        </div>
+        <p className="type-secondary mt-6">Click a color or a bar to filter.</p>
+      </section>
+      <section
+        className="panel flex h-full min-h-0 flex-col overflow-hidden border-l-[3px] border-l-tessolve-navy p-6"
+        aria-label="Exceptions"
+      >
+        <AttentionPanel
+          groups={attention.groups}
+          onClient={toggleClient}
+          onAtRisk={(client) => toggleClientStatus(client, 'RED')}
         />
+      </section>
+    </div>
+
+    <section className="panel p-6" aria-label="Grade mix">
+      <div className="flex flex-wrap items-center gap-3">
+        <h2 className="type-title">Grade mix</h2>
+        <div className="flex hit min-w-[12rem] flex-1 overflow-hidden rounded-md border border-hairline">
+          {seniorGrow > 0 && (
+            <div
+              style={{ flexGrow: seniorGrow, flexBasis: 0 }}
+              className="flex min-w-0 items-center justify-center gap-3 bg-tessolve-navy px-3 font-semibold text-white"
+            >
+              <span className="truncate">Senior</span>
+              <span className="shrink-0">{balance.senior}</span>
+            </div>
+          )}
+          {juniorGrow > 0 && (
+            <div
+              style={{ flexGrow: juniorGrow, flexBasis: 0 }}
+              className="flex min-w-0 items-center justify-center gap-3 bg-tessolve-blue px-3 font-semibold text-tessolve-navy"
+            >
+              <span className="truncate">Junior</span>
+              <span className="shrink-0">{balance.junior}</span>
+            </div>
+          )}
+        </div>
+        <p className="type-secondary">
+          {balance.ratio === null
+            ? 'No juniors in this view.'
+            : `${balance.senior} senior to ${balance.junior} junior (${balance.ratio} to 1).`}
+        </p>
       </div>
+      <h3 className="type-title mt-6">Org exceptions</h3>
+      {issues.length === 0 ? (
+        <p className="type-secondary mt-3">No org exceptions in this view.</p>
+      ) : (
+        <ul className="mt-3">
+          {issues.map((issue) => (
+            <li key={issue} className="border-b border-hairline py-3">
+              {issue}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div>
+          <h3 className="type-title">Readiness by role</h3>
+          <div className="mt-3">
+            <MixBars
+              data={funnel}
+              empty="No roles in view."
+              label="Readiness by role. Ready, Watch, and At risk for each role."
+              onName={toggleRole}
+              plotClass="h-56"
+            />
+          </div>
+        </div>
+        <div>
+          <h3 className="type-title">Mentor span</h3>
+          <div className="mt-3">
+            <MixBars
+              data={mentors}
+              empty="No mentors in view."
+              label="Mentor span. Ready, Watch, and At risk mentees for each mentor."
+              plotClass="h-56"
+            />
+          </div>
+        </div>
+        <div>
+          <h3 className="type-title">Span of control</h3>
+          <div
+            className="mt-3 h-56"
+            role="group"
+            aria-label="Span of control for leaders with direct reports."
+          >
+            {leaders.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-center type-secondary">
+                No leaders with reports in this view.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={leaders} layout="vertical" margin={CHART_MARGIN}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" width={108} tick={{ fontSize: 11 }} />
+                  <Tooltip />
+                  <Bar dataKey="score" name="Score" radius={[0, 4, 4, 0]}>
+                    {leaders.map((row) => (
+                      <Cell key={row.id} fill={scoreFill(row.score)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
     </div>
   )
 }

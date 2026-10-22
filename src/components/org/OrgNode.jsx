@@ -1,23 +1,28 @@
 import { useState } from 'react'
 import { GripVertical, Minus, Plus } from 'lucide-react'
-import RagBadge from '../common/RagBadge'
 import { useApp } from '../../context/AppContext'
+import { RAG_LABELS } from '../../utils/csvSchema'
 import { clientColor } from '../../utils/clientColors'
-import { normalizeRole } from '../../utils/ragEvaluator'
+import { bandOf } from '../../utils/teamShape'
 
-const HEADER_BY_TIER = {
-  Manager: 'bg-tessolve-navy',
-  Lead: 'bg-tessolve-blue',
-  'Sr Eng 2': 'bg-[#1A8BC0]',
-  'Sr Eng 1': 'bg-[#4db3e0]',
-  'Eng 2': 'bg-tessolve-orange',
-  'Eng 1': 'bg-[#f5a05a]',
-  Intern: 'bg-slate-500',
+const RAIL = {
+  GREEN: '#16A34A',
+  AMBER: '#D97706',
+  RED: '#DC2626',
 }
 
-function headerClass(role) {
-  const n = normalizeRole(role)
-  return HEADER_BY_TIER[n] || 'bg-slate-500'
+const STATUS_TEXT = {
+  GREEN: 'text-status-ready',
+  AMBER: 'text-status-watch',
+  RED: 'text-status-risk',
+}
+
+function tint(hex, amount = 0.18) {
+  const h = String(hex || '').replace('#', '')
+  if (h.length !== 6) return '#f1f5f9'
+  const mix = (channel) =>
+    Math.round(Number.parseInt(channel, 16) * amount + 255 * (1 - amount))
+  return `rgb(${mix(h.slice(0, 2))}, ${mix(h.slice(2, 4))}, ${mix(h.slice(4, 6))})`
 }
 
 export default function OrgNode({ node }) {
@@ -31,6 +36,10 @@ export default function OrgNode({ node }) {
   const [dragging, setDragging] = useState(false)
   const [dropOver, setDropOver] = useState(false)
   const hasChildren = node.children?.length > 0
+  const rail = node.isDeparted ? '#94a3b8' : RAIL[node.ragStatus] || '#cbd5e1'
+  const band = bandOf(node.Role)
+  const fill = node.isDeparted ? '#e2e8f0' : tint(clientColor(node.Client))
+  const clientInk = node.isDeparted ? '#64748b' : clientColor(node.Client)
 
   const onDragStart = (e) => {
     e.dataTransfer.setData('text/employee-id', node.id)
@@ -65,15 +74,46 @@ export default function OrgNode({ node }) {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           onClick={() => setSelectedEmployeeId(node.id)}
-          className={`relative w-36 cursor-pointer overflow-hidden rounded-xl border bg-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg sm:w-40 ${
-            dropOver
-              ? 'border-tessolve-blue ring-2 ring-tessolve-blue/40'
-              : 'border-slate-200/90'
-          } ${dragging ? 'opacity-40' : ''} ${node.isDeparted ? 'opacity-50' : ''}`}
-          style={{ borderLeftWidth: 3, borderLeftColor: clientColor(node.Client) }}
+          className={`w-[9.5rem] cursor-pointer rounded-xl border border-hairline border-t-[3px] p-3 text-center shadow-[0_8px_24px_rgba(11,28,44,0.06)] ${
+            dropOver ? 'ring-2 ring-tessolve-blue' : ''
+          } ${dragging ? 'opacity-40' : ''}`}
+          style={{ borderTopColor: rail, backgroundColor: fill }}
         >
+          <p className="font-semibold break-words text-tessolve-navy">
+            {node.Employee_Name}
+          </p>
+          <p className="mt-3 break-words">
+            {band && (
+              <span
+                className={`font-semibold ${
+                  band === 'senior' ? 'text-tessolve-navy' : 'text-tessolve-blue-dark'
+                }`}
+              >
+                {band === 'senior' ? 'Senior' : 'Junior'}
+              </span>
+            )}
+            {band ? ' · ' : ''}
+            <span className="type-secondary">{node.Role}</span>
+          </p>
+          <p className="break-words font-medium" style={{ color: clientInk }}>
+            {node.Client}
+          </p>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setFilters((f) => ({
+                ...f,
+                rag: f.rag === node.ragStatus ? 'All' : node.ragStatus,
+              }))
+            }}
+            className={`hit mt-3 font-medium ${STATUS_TEXT[node.ragStatus] || 'text-slate-500'}`}
+          >
+            {RAG_LABELS[node.ragStatus] || node.ragStatus}
+          </button>
           <div
-            className={`flex items-center justify-between gap-1 px-1.5 py-1 text-[10px] font-semibold tracking-wide text-white uppercase ${headerClass(node.Role)}`}
+            className="mt-1 flex items-center justify-between gap-1"
+            onClick={(e) => e.stopPropagation()}
           >
             <span
               draggable
@@ -83,62 +123,16 @@ export default function OrgNode({ node }) {
               aria-label={`Drag to reassign ${node.Employee_Name}. For keyboard, open profile and change Reports to.`}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
-              onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  e.stopPropagation()
                   setSelectedEmployeeId(node.id)
                 }
               }}
-              className="inline-flex cursor-grab items-center rounded bg-white/15 p-0.5 active:cursor-grabbing"
+              className="inline-flex cursor-grab text-slate-400 active:cursor-grabbing"
             >
-              <GripVertical size={12} />
+              <GripVertical size={14} />
             </span>
-            <span className="min-w-0 flex-1 truncate">{node.Role}</span>
-            {hasChildren && (
-              <button
-                type="button"
-                aria-label={expanded ? 'Collapse' : 'Expand'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setExpanded((v) => !v)
-                }}
-                className="shrink-0 rounded-full bg-white/25 p-0.5 hover:bg-white/40"
-              >
-                {expanded ? <Minus size={11} /> : <Plus size={11} />}
-              </button>
-            )}
-          </div>
-          <div className="space-y-1 px-2 py-2 text-center">
-            <p className="font-display truncate text-sm font-semibold text-slate-900">
-              {node.Employee_Name}
-            </p>
-            <div
-              className="flex flex-wrap items-center justify-center gap-1"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <RagBadge
-                status={node.ragStatus}
-                small
-                human
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    rag: f.rag === node.ragStatus ? 'All' : node.ragStatus,
-                  }))
-                }
-              />
-            </div>
-            <p
-              className="truncate text-[10px] font-medium"
-              style={{ color: clientColor(node.Client) }}
-            >
-              {node.Client}
-            </p>
-            <label
-              className="flex cursor-pointer items-center justify-center gap-1 text-[10px] text-slate-500"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <label className="flex cursor-pointer items-center gap-3 text-slate-500">
               <input
                 type="checkbox"
                 checked={Boolean(node.isDeparted)}
@@ -147,6 +141,18 @@ export default function OrgNode({ node }) {
               />
               Departed
             </label>
+            {hasChildren ? (
+              <button
+                type="button"
+                aria-label={expanded ? 'Collapse' : 'Expand'}
+                onClick={() => setExpanded((v) => !v)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                {expanded ? <Minus size={14} /> : <Plus size={14} />}
+              </button>
+            ) : (
+              <span className="w-3.5" />
+            )}
           </div>
         </div>
       </div>

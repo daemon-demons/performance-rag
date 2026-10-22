@@ -6,6 +6,7 @@ import DashboardLayout from './pages/DashboardLayout'
 import TeamRoster from './components/roster/TeamRoster'
 import OrgChart from './components/org/OrgChart'
 import DashboardView from './components/dashboard/DashboardView'
+import ReportView from './components/report/ReportView'
 
 const AnalyticsView = lazy(
   () => import('./components/analytics/AnalyticsView'),
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/org" element={<OrgChart />} />
             <Route path="/roster" element={<TeamRoster />} />
             <Route path="/analytics" element={<AnalyticsRoute />} />
+            <Route path="/report" element={<ReportView />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

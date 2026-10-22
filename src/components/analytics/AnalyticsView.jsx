@@ -14,7 +14,6 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts'
-import { Download, Lightbulb, Users } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import {
   HEATMAP_COLUMNS,
@@ -27,7 +26,7 @@ import {
   buildLeadershipScores,
   buildAutoInsights,
 } from '../../utils/analyticsEngine'
-import { exportRosterCsv } from '../../utils/csvPersist'
+import { RAG_LABELS } from '../../utils/csvSchema'
 
 const WhatIfPanel = lazy(() => import('./WhatIfPanel'))
 
@@ -57,7 +56,6 @@ export default function AnalyticsView() {
   const {
     filteredEmployees,
     employees,
-    rawEmployees,
     filters,
     setFilters,
   } = useApp()
@@ -116,42 +114,25 @@ export default function AnalyticsView() {
     setFilters({ ...view.filters })
   }
 
-  const exportCsv = () => {
-    if (!rawEmployees?.length) return
-    exportRosterCsv(rawEmployees)
-  }
-
   return (
-    <div className="page-shell space-y-6 pb-12">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-xl font-semibold text-tessolve-navy">
-            Analytics
-          </h2>
-          <p className="text-sm text-slate-500">
-            Coverage, readiness, and risk deep-dive · {active.length} active
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={exportCsv}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-tessolve-blue hover:text-tessolve-navy"
-          >
-            <Download size={14} />
-            Export CSV
-          </button>
+    <div className="page-shell pb-6">
+      <section className="panel p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="type-title">
+          Active headcount · {active.length}
+        </h2>
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={saveCurrentView}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-tessolve-orange"
+            className="hit rounded-md border border-hairline bg-white px-3 font-medium text-ink"
           >
             Save view
           </button>
           {savedViews.length > 0 && (
             <select
               aria-label="Apply saved analytics view"
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm shadow-sm"
+              className="hit rounded-md border border-hairline bg-white px-3"
               defaultValue=""
               onChange={(e) => {
                 const v = savedViews.find((x) => x.name === e.target.value)
@@ -170,10 +151,11 @@ export default function AnalyticsView() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="card-plush lg:col-span-2">
-          <h3 className="mb-3 text-sm font-semibold text-slate-800">
-            Skill coverage heatmap
+      <div className="mt-6 divide-y divide-hairline border-t border-hairline">
+      <div className="grid lg:grid-cols-3 lg:divide-x lg:divide-slate-300">
+        <section className="py-6 lg:col-span-2 lg:pr-6">
+          <h3 className="type-title mb-3">
+            Skill coverage
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse text-left text-xs">
@@ -216,33 +198,27 @@ export default function AnalyticsView() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
-        <div className="card-plush">
-          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-            <Lightbulb size={15} className="text-tessolve-orange" />
-            Insights
-          </h3>
-          <ul className="space-y-2">
+        <section className="border-t border-slate-300 py-6 lg:border-t-0 lg:pl-6">
+          <h3 className="type-title mb-3">Findings</h3>
+          <ul className="space-y-3">
             {insights.length === 0 && (
               <li className="text-sm text-slate-500">No critical insights.</li>
             )}
             {insights.map((t) => (
-              <li
-                key={t}
-                className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs leading-relaxed text-slate-700"
-              >
+              <li key={t} className="text-xs leading-relaxed text-slate-700">
                 {t}
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card-plush">
-          <h3 className="mb-3 text-sm font-semibold text-slate-800">
-            Role readiness funnel
+      <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-slate-300">
+        <section className="py-6 lg:pr-6">
+          <h3 className="type-title mb-3">
+            Readiness by role
           </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -260,48 +236,50 @@ export default function AnalyticsView() {
                     return gap != null ? `${label} (gap ${gap})` : label
                   }}
                 />
-                <Legend />
+                <Legend
+                  itemSorter={(item) => {
+                    const order = { Ready: 0, Watch: 1, 'At risk': 2 }
+                    return order[item.value] ?? 99
+                  }}
+                />
                 <Bar
                   dataKey="green"
                   stackId="a"
                   fill={RAG_COLORS.GREEN}
-                  name="Green"
+                  name={RAG_LABELS.GREEN}
                 />
                 <Bar
                   dataKey="amber"
                   stackId="a"
                   fill={RAG_COLORS.AMBER}
-                  name="Amber"
+                  name={RAG_LABELS.AMBER}
                 />
                 <Bar
                   dataKey="red"
                   stackId="a"
                   fill={RAG_COLORS.RED}
-                  name="Red"
+                  name={RAG_LABELS.RED}
                 />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
 
-        <div className="card-plush">
-          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-            <Users size={15} className="text-tessolve-blue" />
-            Mentor load
-          </h3>
-          <div className="max-h-64 space-y-2 overflow-y-auto">
+        <section className="border-t border-slate-300 py-6 lg:border-t-0 lg:pl-6">
+          <h3 className="type-title mb-3">Mentor span</h3>
+          <div className="max-h-64 overflow-y-auto">
             {mentors.map((m) => (
               <div
                 key={m.mentor}
-                className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm transition hover:border-tessolve-blue/40"
+                className="flex min-w-0 items-baseline justify-between gap-3 border-b border-slate-300 py-2 text-sm"
               >
                 <div>
                   <p className="font-medium text-slate-800">{m.mentor}</p>
                   <p className="text-[11px] text-slate-500">
-                    {m.menteeCount} mentees · G{m.green}/A{m.amber}/R{m.red}
+                    {m.menteeCount} mentees · {RAG_LABELS.GREEN} {m.green} · {RAG_LABELS.AMBER} {m.amber} · {RAG_LABELS.RED} {m.red}
                   </p>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
+                <span className="font-mono text-[11px] text-slate-500">
                   risk {m.riskScore}
                 </span>
               </div>
@@ -312,14 +290,14 @@ export default function AnalyticsView() {
               </p>
             )}
           </div>
-        </div>
+        </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card-plush">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-800">
-              Peer vs team radar
+      <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-slate-300">
+        <section className="py-6 lg:pr-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="type-title">
+              Skill vs team mean
             </h3>
             <select
               aria-label="Compare person against team mean"
@@ -367,11 +345,11 @@ export default function AnalyticsView() {
               </RadarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
 
-        <div className="card-plush">
-          <h3 className="mb-3 text-sm font-semibold text-slate-800">
-            Capability SPOF by client
+        <section className="border-t border-slate-300 py-6 lg:border-t-0 lg:pl-6">
+          <h3 className="type-title mb-3">
+            Single-point skills
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -405,30 +383,29 @@ export default function AnalyticsView() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
 
-      <div className="card-plush">
-        <h3 className="mb-3 text-sm font-semibold text-slate-800">
-          Leadership effectiveness
+      <section className="py-6">
+        <h3 className="type-title mb-3">
+          Span of control
         </h3>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
           {leadership.map((l) => (
             <div
               key={l.id}
-              className="rounded-xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 px-3 py-3 transition hover:shadow-md"
+              className="flex min-w-0 flex-wrap items-baseline justify-between gap-3 border-b border-hairline py-3"
             >
-              <p className="font-display text-sm font-semibold text-tessolve-navy">
+              <p className="font-semibold text-tessolve-navy">
                 {l.name}
+                <span className="ml-3 font-normal type-secondary">
+                  {l.role} · {l.reportCount} reports
+                </span>
               </p>
-              <p className="text-[11px] text-slate-500">
-                {l.role} · {l.reportCount} reports
-              </p>
-              <p className="mt-2 font-mono text-lg text-tessolve-orange">
-                {l.score}
-              </p>
-              <p className="text-[11px] text-slate-500">
-                {l.greenShare}% green · {l.failedRate}% failed resp · avg{' '}
+              <p className="type-secondary">
+                <span className="font-semibold text-ink">{l.score}</span>
+                {' · '}
+                {l.greenShare}% {RAG_LABELS.GREEN} · {l.failedRate}% failed · avg{' '}
                 {l.avgOverall}
               </p>
             </div>
@@ -437,17 +414,15 @@ export default function AnalyticsView() {
             <p className="text-sm text-slate-500">No leader roles in view.</p>
           )}
         </div>
-      </div>
+      </section>
 
       <Suspense
-        fallback={
-          <div className="card-plush text-sm text-slate-500">
-            Loading what-if…
-          </div>
-        }
+        fallback={<p className="py-6 text-sm text-slate-500">Loading what-if…</p>}
       >
         <WhatIfPanel />
       </Suspense>
+      </div>
+      </section>
     </div>
   )
 }

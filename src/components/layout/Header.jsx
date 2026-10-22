@@ -1,86 +1,135 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import {
-  LogOut,
-  Users,
-  Network,
-  LayoutDashboard,
-  BarChart3,
-} from 'lucide-react'
+import { useMemo } from 'react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import FilterBar from '../common/FilterBar'
+import KpiBar from './KpiBar'
+import { exportRosterCsv } from '../../utils/csvPersist'
+import { buildBillingRunway } from '../../utils/portfolioEngine'
 
 const TABS = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/org', label: 'Org Chart', icon: Network },
-  { to: '/roster', label: 'Team Roster', icon: Users },
-  { to: '/analytics', label: 'Deep dive', icon: BarChart3 },
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/org', label: 'Org' },
+  { to: '/roster', label: 'Roster' },
+  { to: '/analytics', label: 'Deep dive' },
+  { to: '/report', label: 'Report' },
 ]
 
+const TITLES = Object.fromEntries(TABS.map((tab) => [tab.to, tab.label]))
+
+function decisionSentence(atRisk, lowClients) {
+  const parts = []
+  if (atRisk === 1) parts.push('1 person is At risk.')
+  else if (atRisk > 1) parts.push(`${atRisk} people are At risk.`)
+  if (lowClients === 1) parts.push('1 client is under 2 months of billing.')
+  else if (lowClients > 1) {
+    parts.push(`${lowClients} clients are under 2 months of billing.`)
+  }
+  return parts.join(' ')
+}
+
 export default function Header() {
-  const { clearData, hasLinkedFile, persistStatus } = useApp()
+  const { clearData, hasLinkedFile, persistStatus, rawEmployees, filteredEmployees } =
+    useApp()
   const navigate = useNavigate()
+  const location = useLocation()
+  const onReport = location.pathname.includes('/report')
+  const title = TITLES[location.pathname] || 'Dashboard'
+
+  const sentence = useMemo(() => {
+    const active = (filteredEmployees || []).filter((e) => !e.isDeparted)
+    const atRisk = active.filter((e) => e.ragStatus === 'RED').length
+    const lowClients = buildBillingRunway(active).lowAlerts.length
+    return decisionSentence(atRisk, lowClients)
+  }, [filteredEmployees])
 
   const handleReset = () => {
     clearData()
     navigate('/')
   }
 
-  return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-tessolve-navy shadow-md shadow-tessolve-navy/20 ring-1 ring-tessolve-blue/40 transition hover:ring-tessolve-orange/50">
-            <span className="font-display text-[10px] font-bold tracking-wide text-tessolve-orange">
-              RAG
-            </span>
-          </div>
-          <div>
-            <p className="font-display text-sm font-bold tracking-tight text-tessolve-navy sm:text-base">
-              Tessolve · Performance RAG
-            </p>
-            <p className="text-xs text-slate-500">
-              Welcome Rajmohan
-              {hasLinkedFile ? ' · CSV linked' : ''}
-              {persistStatus ? ` · ${persistStatus}` : ''}
-            </p>
-          </div>
-        </div>
+  const exportCsv = () => {
+    if (!rawEmployees?.length) return
+    exportRosterCsv(rawEmployees)
+  }
 
-        <nav className="flex flex-wrap items-center gap-0.5 rounded-xl bg-slate-50 p-1">
-          {TABS.map((tab) => {
-            const Icon = tab.icon
-            return (
+  return (
+    <header className="command-bar sticky top-0 z-30">
+      <div className="page-shell py-3">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-tessolve-navy">
+              <span className="font-display text-[11px] font-semibold text-tessolve-orange">
+                RAG
+              </span>
+            </div>
+            <div className="min-w-0">
+              <h1 className="type-title">{title}</h1>
+              {(hasLinkedFile || persistStatus) && (
+                <p className="type-secondary">
+                  {hasLinkedFile ? 'CSV linked' : ''}
+                  {hasLinkedFile && persistStatus ? ' · ' : ''}
+                  {persistStatus || ''}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <nav className="order-last flex w-full flex-wrap items-center gap-3 md:order-none md:w-auto">
+            {TABS.map((tab) => (
               <NavLink
                 key={tab.to}
                 to={tab.to}
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition ${
+                  `hit inline-flex items-center ${
                     isActive
-                      ? 'bg-white font-semibold text-tessolve-navy shadow-sm ring-1 ring-slate-200/80'
-                      : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'
+                      ? 'font-semibold text-tessolve-navy underline decoration-2 underline-offset-4'
+                      : 'type-secondary hover:text-tessolve-navy'
                   }`
                 }
               >
-                <Icon size={15} />
                 {tab.label}
               </NavLink>
-            )
-          })}
-        </nav>
+            ))}
+          </nav>
 
-        <button
-          type="button"
-          onClick={handleReset}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 shadow-sm transition hover:border-tessolve-navy hover:text-tessolve-navy active:scale-[0.98]"
-        >
-          <LogOut size={15} />
-          New CSV
-        </button>
-      </div>
+          <div className="ml-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={!rawEmployees?.length}
+              className="hit rounded-md border border-hairline bg-white px-3 type-secondary hover:text-tessolve-navy disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="hit rounded-md border border-hairline bg-white px-3 type-secondary hover:text-tessolve-navy"
+            >
+              New CSV
+            </button>
+            {onReport && (
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="hit rounded-md bg-tessolve-orange px-3 font-semibold text-tessolve-navy"
+              >
+                Print
+              </button>
+            )}
+          </div>
+        </div>
 
-      <div className="border-t border-slate-100/80">
-        <div className="mx-auto max-w-[1600px] px-4 py-2 sm:px-6">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="min-w-[16rem] flex-1 basis-full md:basis-auto">
+            <KpiBar />
+          </div>
           <FilterBar />
+          {sentence ? (
+            <p className="type-secondary basis-full md:ml-auto md:basis-auto md:text-right">
+              {sentence}
+            </p>
+          ) : null}
         </div>
       </div>
     </header>

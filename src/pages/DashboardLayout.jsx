@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import Header from '../components/layout/Header'
-import KpiBar from '../components/layout/KpiBar'
 
 export default function DashboardLayout() {
   const { hasData, setFilters } = useApp()
@@ -21,10 +20,9 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="min-h-screen bg-page">
       <Header />
-      <KpiBar />
-      <main>
+      <main className="pt-6">
         <Outlet />
       </main>
     </div>

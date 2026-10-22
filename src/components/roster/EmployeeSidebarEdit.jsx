@@ -1,6 +1,15 @@
 import { ENUM_COLUMNS, BOOLEAN_COLUMNS, allowedProjectTypes } from '../../utils/csvSchema'
 import { ROLE_OPTIONS, fieldClass } from './employeeSidebarShared'
 
+function Row({ label, children }) {
+  return (
+    <label className="flex items-baseline justify-between gap-3 border-b border-hairline py-3">
+      <span className="type-secondary w-36 shrink-0">{label}</span>
+      <span className="min-w-0 flex-1">{children}</span>
+    </label>
+  )
+}
+
 export default function EmployeeSidebarEdit({
   draft: d,
   setField,
@@ -10,20 +19,19 @@ export default function EmployeeSidebarEdit({
   const projectTypes = allowedProjectTypes(d.Product_Focus || 'Sustaining')
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+    <div>
+      <h3 className="type-title border-b border-hairline pb-3">
         Edit details
       </h3>
-      <p className="text-[11px] text-slate-500">
+      <p className="type-secondary py-3">
         Use Reports to here for keyboard-accessible org reassignment (drag on
         the org chart is mouse-only). NPI focus allows WS/FT only; Sustaining
         allows WS/FT/Both.
       </p>
 
-      <label className="block text-xs text-slate-500">
-        Role
+      <Row label="Role">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Role}
           onChange={(e) => setField('Role', e.target.value)}
         >
@@ -33,12 +41,11 @@ export default function EmployeeSidebarEdit({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Reports to
+      <Row label="Reports to">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Reports_To || ''}
           onChange={(e) => setField('Reports_To', e.target.value)}
         >
@@ -49,12 +56,11 @@ export default function EmployeeSidebarEdit({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Mentor
+      <Row label="Mentor">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Mentor_Name || ''}
           onChange={(e) => setField('Mentor_Name', e.target.value)}
         >
@@ -65,12 +71,11 @@ export default function EmployeeSidebarEdit({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Client
+      <Row label="Client">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Client}
           onChange={(e) => setField('Client', e.target.value)}
         >
@@ -90,12 +95,11 @@ export default function EmployeeSidebarEdit({
               </option>
             ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Product focus
+      <Row label="Product focus">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Product_Focus || 'Sustaining'}
           onChange={(e) => {
             const focus = e.target.value
@@ -112,12 +116,11 @@ export default function EmployeeSidebarEdit({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Project type (WS / FT / Both)
+      <Row label="Project type">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={
             projectTypes.includes(d.Project_Type)
               ? d.Project_Type
@@ -131,41 +134,38 @@ export default function EmployeeSidebarEdit({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Allocation
+      <Row label="Allocation">
         <select
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Allocation_Status || 'Project'}
           onChange={(e) => setField('Allocation_Status', e.target.value)}
         >
           <option value="Project">On project</option>
           <option value="Bench">On bench</option>
         </select>
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Billing months remaining
+      <Row label="Billing months">
         <input
           type="number"
           min={0}
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Billing_Months_Remaining ?? 0}
           onChange={(e) =>
             setField('Billing_Months_Remaining', Number(e.target.value) || 0)
           }
         />
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        Upcoming commitment
+      <Row label="Upcoming commitment">
         <input
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.Upcoming_Commitment || ''}
           onChange={(e) => setField('Upcoming_Commitment', e.target.value)}
         />
-      </label>
+      </Row>
 
       {Object.entries(ENUM_COLUMNS)
         .filter(
@@ -175,10 +175,9 @@ export default function EmployeeSidebarEdit({
             col !== 'Product_Focus',
         )
         .map(([col, options]) => (
-          <label key={col} className="block text-xs text-slate-500">
-            {col.replace(/_/g, ' ')}
+          <Row key={col} label={col.replace(/_/g, ' ')}>
             <select
-              className={`mt-1 ${fieldClass}`}
+              className={fieldClass}
               value={d[col]}
               onChange={(e) => setField(col, e.target.value)}
             >
@@ -188,42 +187,40 @@ export default function EmployeeSidebarEdit({
                 </option>
               ))}
             </select>
-          </label>
+          </Row>
         ))}
 
-      <label className="block text-xs text-slate-500">
-        TML Scripting (0–10)
+      <Row label="TML Scripting (0–10)">
         <input
           type="number"
           min={0}
           max={10}
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.TML_Scripting ?? 0}
           onChange={(e) =>
             setField('TML_Scripting', Number(e.target.value) || 0)
           }
         />
-      </label>
+      </Row>
 
-      <label className="block text-xs text-slate-500">
-        CS/ES HVM Releases (0–10)
+      <Row label="CS/ES HVM (0–10)">
         <input
           type="number"
           min={0}
           max={10}
-          className={`mt-1 ${fieldClass}`}
+          className={fieldClass}
           value={d.CS_ES_HVM_Releases ?? 0}
           onChange={(e) =>
             setField('CS_ES_HVM_Releases', Number(e.target.value) || 0)
           }
         />
-      </label>
+      </Row>
 
-      <div className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+      <div className="mt-2 border-t border-slate-200">
         {BOOLEAN_COLUMNS.map((col) => (
           <label
             key={col}
-            className="flex items-center justify-between gap-2 text-xs text-slate-600"
+            className="flex items-center justify-between gap-2 border-b border-slate-300 py-1.5 text-xs text-slate-600"
           >
             <span>{col.replace(/_/g, ' ')}</span>
             <input
@@ -233,7 +230,7 @@ export default function EmployeeSidebarEdit({
             />
           </label>
         ))}
-        <label className="flex items-center justify-between gap-2 text-xs text-slate-600">
+        <label className="flex items-center justify-between gap-2 border-b border-slate-300 py-1.5 text-xs text-slate-600">
           <span>Departed</span>
           <input
             type="checkbox"

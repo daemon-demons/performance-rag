@@ -1,5 +1,6 @@
 import { normalizeRole, getRoleBaseline, isLeaderRole } from './ragEvaluator'
 import { CONT_MAP, IP_MAP, smtStrength } from './scoreMaps'
+import { RAG_LABELS } from './csvSchema'
 
 export const HEATMAP_COLUMNS = [
   { key: 'smt', label: 'SMT' },
@@ -283,7 +284,7 @@ export function buildAutoInsights(employees, capabilitySpof) {
   for (const m of mentors.slice(0, 3)) {
     if (m.amber + m.red >= 2) {
       insights.push(
-        `${m.mentor} mentors ${m.menteeCount}; ${m.amber + m.red} are Amber/Red.`,
+        `${m.mentor} mentors ${m.menteeCount}; ${m.amber + m.red} are ${RAG_LABELS.AMBER} or ${RAG_LABELS.RED}.`,
       )
     }
   }

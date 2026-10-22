@@ -9,7 +9,6 @@ export default function OrgChart() {
 
   const roots = useMemo(() => {
     const tree = buildOrgTree(orgEmployees)
-    // When filtering by person, prefer that person as the sole root if present
     if (filters.person && filters.person !== 'All') {
       const match = tree.find(
         (r) =>
@@ -17,7 +16,6 @@ export default function OrgChart() {
           String(filters.person).trim().toLowerCase(),
       )
       if (match) return [match]
-      // Person is not a root of the subset tree — find them nested
       const find = (nodes) => {
         for (const n of nodes) {
           if (
@@ -38,49 +36,32 @@ export default function OrgChart() {
   }, [orgEmployees, filters.person])
 
   return (
-    <div className="page-shell pb-10">
-      <div className="mb-4">
-        <h2 className="font-display text-xl font-semibold text-tessolve-navy">
-          Org Chart
-        </h2>
-        <p className="text-sm text-slate-500">
-          {orgEmployees.length} shown · drag the grip handle onto a manager to
-          reassign · click a card to open profile
-        </p>
-      </div>
+    <div className="flex min-h-[calc(100vh-8rem)] flex-col">
+      <p className="type-title px-6">Reporting lines · {orgEmployees.length}</p>
 
       {reorgPreview && (
-        <div className="animate-fade-up mb-4 rounded-xl border border-tessolve-blue/30 bg-sky-50/90 px-4 py-3 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-tessolve-navy">
-                Reorg RAG preview · {reorgPreview.title}
-              </p>
-              <ul className="mt-1 space-y-0.5 text-xs text-slate-700">
-                {reorgPreview.deltas.map((d) => (
-                  <li key={d.id}>
-                    {d.name}:{' '}
-                    <span className="font-mono">
-                      {d.from} → {d.to}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button
-              type="button"
-              className="text-xs text-slate-500 hover:text-slate-800"
-              onClick={() => setReorgPreview(null)}
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
+        <p className="mx-6 mt-3 flex items-baseline justify-between gap-6 border-b border-hairline pb-3 type-secondary">
+          <span>
+            <span className="font-semibold text-tessolve-navy">
+              Reorg RAG preview · {reorgPreview.title}
+            </span>{' '}
+            {reorgPreview.deltas
+              .map((d) => `${d.name}: ${d.from} → ${d.to}`)
+              .join(' · ')}
+          </span>
+          <button
+            type="button"
+            className="hit shrink-0 text-ink"
+            onClick={() => setReorgPreview(null)}
+          >
+            Dismiss
+          </button>
+        </p>
       )}
 
-      <div className="card-plush overflow-x-auto p-4 sm:p-8">
+      <div className="mt-6 min-h-0 flex-1 overflow-auto px-6 pb-6">
         {roots.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p className="py-6 text-center type-secondary">
             No employees match the current filters.
           </p>
         ) : (

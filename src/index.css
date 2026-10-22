@@ -10,6 +10,13 @@
   --color-rag-green: #16A34A;
   --color-rag-amber: #D97706;
   --color-rag-red: #DC2626;
+  --color-status-ready: #15803D;
+  --color-status-watch: #B45309;
+  --color-status-risk: #DC2626;
+  --color-page: #F4F6F8;
+  --color-ink: #0B1C2C;
+  --color-secondary: #3D4F63;
+  --color-hairline: #D5DCE3;
   --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
@@ -22,13 +29,21 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 400;
+  line-height: 16px;
   background:
-    radial-gradient(ellipse 120% 80% at 100% -10%, rgba(35, 166, 227, 0.08), transparent),
-    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(242, 128, 43, 0.06), transparent),
-    #f4f7fb;
-  color: #334155;
+    radial-gradient(ellipse 90% 42% at 50% -12%, rgba(35, 166, 227, 0.14), transparent 62%),
+    #f4f6f8;
+  color: #0b1c2c;
   -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 767px) {
+  body {
+    font-size: 17px;
+    line-height: 22px;
+  }
 }
 
 .card-plush,
@@ -60,16 +75,89 @@ body {
 .page-shell {
   margin-left: auto;
   margin-right: auto;
-  max-width: 80rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  max-width: 1600px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
-@media (min-width: 1280px) {
-  .page-shell {
-    max-width: 1600px;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+.command-bar {
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #d5dce3;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d5dce3;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(11, 28, 44, 0.06);
+}
+
+.sheet {
+  background: #ffffff;
+  border-left: 1px solid #d5dce3;
+  box-shadow: -8px 0 24px rgba(11, 28, 44, 0.06);
+}
+
+.type-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #0b1c2c;
+}
+
+.type-secondary {
+  color: #3d4f63;
+}
+
+.hit {
+  min-height: 28px;
+}
+
+.row-stripe {
+  background: rgba(11, 28, 44, 0.04);
+}
+
+@media (max-width: 767px) {
+  .hit {
+    min-height: 44px;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #0b1c2c;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .command-bar {
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
+}
+
+@media print {
+  .command-bar,
+  .report-controls,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .panel {
+    box-shadow: none;
   }
 }
 
@@ -96,15 +184,18 @@ body {
   font-family: var(--font-display);
 }
 
-/* Classic hierarchical org tree — siblings side-by-side with connectors */
+/* Top-down flowchart. Below md the same nodes stack on a left spine. */
 .org-chart-root {
   display: flex;
   justify-content: center;
-  padding: 1rem;
   min-width: max-content;
+  padding: 0.5rem 0 1rem;
 }
 
-.org-chart-root > .org-branch {
+.org-chart-root,
+.org-branch,
+.org-kids,
+.org-kids--roots {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -115,12 +206,9 @@ body {
   flex-direction: column;
   align-items: center;
   position: relative;
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
-.org-branch > .org-card-wrap {
+.org-card-wrap {
   position: relative;
   z-index: 1;
 }
@@ -129,13 +217,10 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 1.5rem;
   position: relative;
-  margin: 0;
-  list-style: none;
+  padding-top: 1.5rem;
 }
 
-/* Vertical stub from parent down to the horizontal bar */
 .org-kids::before {
   content: "";
   position: absolute;
@@ -149,10 +234,9 @@ body {
 
 .org-kids > .org-branch {
   position: relative;
-  padding: 1.5rem 0.75rem 0;
+  padding: 1.5rem 0.65rem 0;
 }
 
-/* Horizontal connectors between siblings */
 .org-kids > .org-branch::before,
 .org-kids > .org-branch::after {
   content: "";
@@ -183,17 +267,13 @@ body {
   display: block;
   border-top: none;
   border-left: 2px solid #94a3b8;
-  height: 1.5rem;
   width: 0;
+  height: 1.5rem;
   left: 50%;
 }
 
 .org-kids > .org-branch:first-child::before {
   border: none;
-}
-
-.org-kids > .org-branch:first-child::after {
-  border-radius: 6px 0 0 0;
 }
 
 .org-kids > .org-branch:last-child::after {
@@ -202,7 +282,6 @@ body {
 
 .org-kids > .org-branch:last-child::before {
   border-right: 2px solid #94a3b8;
-  border-radius: 0 6px 0 0;
 }
 
 .org-kids--roots {
@@ -222,43 +301,36 @@ body {
   display: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
+  .org-chart-root {
+    display: block;
+    min-width: 0;
+  }
+
+  .org-branch {
+    align-items: stretch;
+  }
+
   .org-kids {
     flex-direction: column;
     align-items: stretch;
-    padding-top: 1rem;
-    padding-left: 1.25rem;
-  }
-
-  .org-kids::before {
-    left: 0;
-    transform: none;
-    height: 100%;
-    top: 0;
+    margin-left: 0.85rem;
+    padding-top: 0.5rem;
+    padding-left: 0.85rem;
     border-left: 2px solid #94a3b8;
   }
 
-  .org-kids > .org-branch {
-    align-items: stretch;
-    padding: 0.5rem 0 0.5rem 1.25rem;
-  }
-
+  .org-kids::before,
   .org-kids > .org-branch::before,
-  .org-kids > .org-branch::after {
+  .org-kids > .org-branch::after,
+  .org-kids > .org-branch:only-child::after,
+  .org-kids > .org-branch:last-child::before {
     display: none;
   }
 
-  .org-kids > .org-branch::before {
-    display: block;
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 1.25rem;
-    height: 0;
-    border-top: 2px solid #94a3b8;
-    border-left: none;
-    right: auto;
+  .org-kids > .org-branch,
+  .org-kids > .org-branch:only-child {
+    padding: 0.4rem 0 0.4rem 0.75rem;
   }
 }
 

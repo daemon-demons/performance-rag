@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { FlaskConical } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 
 export default function WhatIfPanel() {
@@ -48,16 +47,13 @@ export default function WhatIfPanel() {
   }
 
   return (
-    <div className="card-plush">
-      <h3 className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-        <FlaskConical size={15} className="text-tessolve-orange" />
-        What-if attrition simulator
-      </h3>
-      <p className="mb-3 text-xs text-slate-500">
+    <section className="py-6">
+      <h3 className="type-title">Attrition scenario</h3>
+      <p className="type-secondary mt-3 mb-3">
         Multi-select people to depart; preview RAG deltas before applying.
       </p>
 
-      <div className="mb-3 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+      <div className="mb-3 flex max-h-40 flex-wrap gap-3 overflow-y-auto">
         {candidates.map((e) => {
           const on = selected.has(e.Employee_Name)
           return (
@@ -65,10 +61,10 @@ export default function WhatIfPanel() {
               key={e.id}
               type="button"
               onClick={() => toggle(e.Employee_Name)}
-              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+              className={`hit px-3 ${
                 on
-                  ? 'border-tessolve-orange bg-orange-50 text-tessolve-orange'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  ? 'font-semibold text-tessolve-navy underline decoration-2 underline-offset-4'
+                  : 'type-secondary hover:text-tessolve-navy'
               }`}
             >
               {e.Employee_Name}
@@ -77,11 +73,11 @@ export default function WhatIfPanel() {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         <button
           type="button"
           onClick={runPreview}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-tessolve-blue"
+          className="hit rounded-md border border-hairline bg-white px-3 font-medium text-ink"
         >
           Preview deltas
         </button>
@@ -89,14 +85,14 @@ export default function WhatIfPanel() {
           type="button"
           disabled={!selected.size || applying}
           onClick={apply}
-          className="rounded-lg bg-tessolve-navy px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-tessolve-navy-mid disabled:opacity-50"
+          className="hit rounded-md bg-tessolve-navy px-3 font-semibold text-white disabled:opacity-50"
         >
           Apply
         </button>
       </div>
 
       {preview && (
-        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+        <div className="mt-4 border-t border-slate-200 pt-3">
           <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
             RAG changes ({preview.deltas?.length || 0})
           </p>
@@ -105,9 +101,12 @@ export default function WhatIfPanel() {
               No RAG status changes for this selection.
             </p>
           ) : (
-            <ul className="mt-2 space-y-1">
+            <ul className="mt-2">
               {preview.deltas.map((d) => (
-                <li key={d.id} className="text-sm text-slate-700">
+                <li
+                  key={d.id}
+                  className="border-b border-slate-100 py-1.5 text-sm text-slate-700"
+                >
                   <span className="font-medium">{d.name}</span>{' '}
                   <span className="font-mono text-xs text-slate-500">
                     {d.from} → {d.to}
@@ -118,6 +117,6 @@ export default function WhatIfPanel() {
           )}
         </div>
       )}
-    </div>
+    </section>
   )
 }

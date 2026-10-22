@@ -1,7 +1,12 @@
 import { useApp } from '../../context/AppContext'
 import RagBadge from '../common/RagBadge'
-import { clientColor } from '../../utils/clientColors'
 import EmployeeSidebar from './EmployeeSidebar'
+
+const RAIL = {
+  GREEN: 'bg-rag-green',
+  AMBER: 'bg-rag-amber',
+  RED: 'bg-rag-red',
+}
 
 export default function TeamRoster() {
   const {
@@ -12,33 +17,26 @@ export default function TeamRoster() {
   } = useApp()
 
   return (
-    <div className="page-shell pb-10">
-      <div className="mb-3">
-        <h2 className="font-display text-xl font-semibold text-tessolve-navy">
-          Team Roster
-        </h2>
-        <p className="text-sm text-slate-500">
-          {filteredEmployees.length} people · click a row to view · Edit in
-          sidebar to change
-        </p>
-      </div>
+    <div className="page-shell pb-6">
+      <section className="panel p-6">
+      <h2 className="type-title">Headcount · {filteredEmployees.length}</h2>
 
-      <div className="card-plush overflow-x-auto p-0">
-        <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50/90 text-xs tracking-wide text-slate-500 uppercase">
+      <div className="mt-6 overflow-x-auto">
+        <table className="min-w-full border-collapse text-left">
+          <thead className="type-secondary">
             <tr>
-              <th className="px-3 py-2.5 font-normal">Employee</th>
-              <th className="px-3 py-2.5 font-normal">Role</th>
-              <th className="px-3 py-2.5 font-normal">Client</th>
-              <th className="px-3 py-2.5 font-normal">Allocation</th>
-              <th className="px-3 py-2.5 font-normal">Billing mo</th>
-              <th className="px-3 py-2.5 font-normal">Overall</th>
-              <th className="px-3 py-2.5 font-normal">Status</th>
-              <th className="px-3 py-2.5 font-normal">Failed</th>
-              <th className="px-3 py-2.5 font-normal">Departed</th>
+              <th className="sticky left-0 z-10 border border-hairline bg-white px-3 py-3 font-medium">Employee</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Role</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Client</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Allocation</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Billing mo</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Overall</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Status</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Failed</th>
+              <th className="border border-hairline px-3 py-3 font-medium">Departed</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody>
             {filteredEmployees.length === 0 && (
               <tr>
                 <td
@@ -50,50 +48,46 @@ export default function TeamRoster() {
                 </td>
               </tr>
             )}
-            {filteredEmployees.map((emp) => (
+            {filteredEmployees.map((emp, index) => {
+              const stripe = index % 2 === 1
+              const cellBg = stripe ? 'row-stripe' : 'bg-white'
+              return (
               <tr
                 key={emp.id}
                 onClick={() => setSelectedEmployeeId(emp.id)}
-                className={`cursor-pointer transition hover:bg-sky-50/70 ${
-                  emp.isDeparted ? 'bg-slate-50 opacity-70' : ''
+                className={`cursor-pointer ${cellBg} ${
+                  emp.isDeparted ? 'opacity-70' : ''
                 }`}
               >
-                <td className="px-3 py-2">
-                  <span className="font-medium text-tessolve-navy">
+                <td className={`sticky left-0 z-10 border border-hairline px-3 py-3 ${cellBg}`}>
+                  <span
+                    className={`absolute inset-y-0 left-0 w-[3px] ${
+                      emp.isDeparted ? 'bg-slate-400' : RAIL[emp.ragStatus] || 'bg-slate-300'
+                    }`}
+                    aria-hidden
+                  />
+                  <span className="font-medium break-words text-tessolve-navy">
                     {emp.Employee_Name}
                   </span>
-                  <div className="text-xs text-slate-400">
-                    → {emp.Reports_To || '—'}
+                  <div className="type-secondary break-words">
+                    Reports to {emp.Reports_To || '—'}
                   </div>
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.Role}</td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <span
-                    className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs font-medium"
-                    style={{
-                      color: clientColor(emp.Client),
-                      backgroundColor: `${clientColor(emp.Client)}18`,
-                    }}
-                  >
-                    <span
-                      className="inline-block size-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: clientColor(emp.Client) }}
-                      aria-hidden
-                    />
-                    {emp.Client}
-                  </span>
+                <td className="border border-hairline px-3 py-3 break-words">{emp.Role}</td>
+                <td className="border border-hairline px-3 py-3 break-words">
+                  {emp.Client}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap text-xs">
+                <td className="border border-hairline px-3 py-3 break-words">
                   {emp.Allocation_Status === 'Bench' ? 'Bench' : 'Project'}
                 </td>
-                <td className="px-3 py-2 font-mono text-slate-700">
+                <td className="border border-hairline px-3 py-3">
                   {emp.Billing_Months_Remaining ?? 0}
                 </td>
-                <td className="px-3 py-2 font-mono text-slate-700">
+                <td className="border border-hairline px-3 py-3">
                   {emp.Overall_Score}
                 </td>
                 <td
-                  className="px-3 py-2"
+                  className="border border-hairline px-3 py-3"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <RagBadge
@@ -107,17 +101,17 @@ export default function TeamRoster() {
                     }
                   />
                 </td>
-                <td className="max-w-[8rem] px-3 py-2">
+                <td className="border border-hairline px-3 py-3">
                   {emp.failedResponsibilities?.length ? (
-                    <span className="text-xs text-rag-red">
+                    <span className="text-status-risk">
                       {emp.failedResponsibilities.length}
                     </span>
                   ) : (
-                    <span className="text-slate-300">—</span>
+                    <span className="text-secondary">—</span>
                   )}
                 </td>
                 <td
-                  className="px-3 py-2"
+                  className="border border-hairline px-3 py-3"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
@@ -126,22 +120,24 @@ export default function TeamRoster() {
                     aria-checked={emp.isDeparted}
                     aria-label={`Mark ${emp.Employee_Name} departed`}
                     onClick={() => toggleDeparted(emp.id)}
-                    className={`relative h-6 w-11 rounded-full transition ${
+                    className={`hit relative w-12 rounded-full max-md:w-14 ${
                       emp.isDeparted ? 'bg-slate-500' : 'bg-slate-300'
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition ${
-                        emp.isDeparted ? 'translate-x-5' : 'translate-x-0'
+                      className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white max-md:h-10 max-md:w-10 ${
+                        emp.isDeparted ? 'translate-x-5 max-md:translate-x-3' : 'translate-x-0'
                       }`}
                     />
                   </button>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>
+      </section>
 
       <EmployeeSidebar />
     </div>
