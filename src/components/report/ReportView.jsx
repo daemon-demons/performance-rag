@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import {
   buildClientBriefs,
@@ -25,7 +26,7 @@ function Fact({ label, value }) {
   )
 }
 
-function AttentionLines({ people }) {
+function AttentionLines({ people, onOpen }) {
   if (!people?.length) {
     return <p className="type-secondary mt-3">No one needs monitoring.</p>
   }
@@ -33,20 +34,69 @@ function AttentionLines({ people }) {
     <ul className="mt-3">
       {people.map((person) => (
         <li
-          key={person.name}
-          className="flex flex-wrap items-baseline gap-3 border-b border-hairline py-3"
+          key={person.id || person.name}
+          className="border-b border-hairline py-3"
         >
-          <span className="font-medium">{person.name}</span>
-          <span className="type-secondary">{person.billingMonths} mo</span>
-          <span className="type-secondary">{person.reasons.join(' · ')}</span>
+          <div className="flex flex-wrap items-baseline gap-3">
+            {person.id ? (
+              <button
+                type="button"
+                onClick={() => onOpen(person.id)}
+                className="hit text-left font-medium text-tessolve-navy"
+              >
+                {person.name}
+              </button>
+            ) : (
+              <span className="font-medium">{person.name}</span>
+            )}
+            <span className="type-secondary">{person.billingMonths} mo</span>
+            <span className="type-secondary">{person.reasons.join(' · ')}</span>
+          </div>
+          {person.action ? (
+            <p className="type-secondary mt-3">{person.action}</p>
+          ) : null}
         </li>
       ))}
     </ul>
   )
 }
 
+function Worklist({ groups, onOpen }) {
+  return (
+    <div className="space-y-6">
+      {groups.map((group) => (
+        <section key={group.id}>
+          <h3 className="type-title">{group.label}</h3>
+          {group.items.length === 0 ? (
+            <p className="type-secondary mt-3">None in this view.</p>
+          ) : (
+            <ul className="mt-3">
+              {group.items.map((item) => (
+                <li key={item.id} className="border-b border-hairline py-3">
+                  {item.personId ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpen(item.personId)}
+                      className="hit text-left"
+                    >
+                      {item.text}
+                    </button>
+                  ) : (
+                    <span>{item.text}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </div>
+  )
+}
+
 export default function ReportView() {
-  const { filteredEmployees, filters } = useApp()
+  const { employees, filteredEmployees, filters } = useApp()
+  const location = useLocation()
   const [level, setLevel] = useState('team')
   const [personId, setPersonId] = useState('')
 
@@ -59,10 +109,27 @@ export default function ReportView() {
   )
 
   useEffect(() => {
-    if (!people.some((person) => person.id === personId)) {
+    const next = location.state
+    if (!next?.personId) return
+    setLevel(next.level || 'person')
+    setPersonId(next.personId)
+  }, [location.state])
+
+  useEffect(() => {
+    if (!personId) {
       setPersonId(people[0]?.id || '')
+      return
     }
-  }, [people, personId])
+    const known =
+      people.some((person) => person.id === personId) ||
+      employees.some((person) => person.id === personId)
+    if (!known) setPersonId(people[0]?.id || '')
+  }, [people, employees, personId])
+
+  const openPerson = (id) => {
+    setLevel('person')
+    setPersonId(id)
+  }
 
   const title = reportTitle(level)
   useEffect(() => {
@@ -84,19 +151,22 @@ export default function ReportView() {
   )
 
   const scope = describeScope(filters)
-  const selected = people.find((person) => person.id === personId) || null
-  const personBrief = buildPersonBrief(selected)
+  const selected =
+    people.find((person) => person.id === personId) ||
+    employees.find((person) => person.id === personId) ||
+    null
+  const personBrief = buildPersonBrief(selected, filteredEmployees, employees)
   const clientBriefs = useMemo(
-    () => buildClientBriefs(filteredEmployees, filters.client),
-    [filteredEmployees, filters.client],
+    () => buildClientBriefs(filteredEmployees, filters.client, employees),
+    [filteredEmployees, filters.client, employees],
   )
   const teamBrief = useMemo(
-    () => buildTeamBrief(filteredEmployees),
-    [filteredEmployees],
+    () => buildTeamBrief(filteredEmployees, employees),
+    [filteredEmployees, employees],
   )
   const mentorBriefs = useMemo(
-    () => buildMentorBriefs(filteredEmployees),
-    [filteredEmployees],
+    () => buildMentorBriefs(filteredEmployees, employees),
+    [filteredEmployees, employees],
   )
 
   return (
@@ -156,23 +226,29 @@ export default function ReportView() {
 
         {level === 'person' &&
           (personBrief ? (
-            <dl className="mt-6">
-              <Fact label="Status" value={personBrief.status} />
-              <Fact label="Overall" value={personBrief.overall ?? '—'} />
-              <Fact label="Platform" value={personBrief.platform ?? '—'} />
-              <Fact label="Delivery" value={personBrief.delivery ?? '—'} />
-              <Fact label="Depth" value={personBrief.depth ?? '—'} />
-              <Fact
-                label="Failed checks"
-                value={
-                  personBrief.failed.length ? personBrief.failed.join(', ') : 'None'
-                }
-              />
-              <Fact label="Client" value={personBrief.client} />
-              <Fact label="Billing months" value={personBrief.billingMonths} />
-              <Fact label="Mentor" value={personBrief.mentor} />
-              <Fact label="Reports to" value={personBrief.reportsTo} />
-            </dl>
+            <div className="mt-6">
+              <p className="type-title">{personBrief.status}</p>
+              {personBrief.action ? (
+                <p className="mt-3 font-medium">{personBrief.action}</p>
+              ) : (
+                <p className="type-secondary mt-3">No action in this view.</p>
+              )}
+              <ul className="mt-6">
+                {personBrief.evidence.map((line) => (
+                  <li key={line} className="border-b border-hairline py-3">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+              <dl className="mt-6">
+                <Fact label="Platform" value={personBrief.platform ?? '—'} />
+                <Fact label="Delivery" value={personBrief.delivery ?? '—'} />
+                <Fact label="Depth" value={personBrief.depth ?? '—'} />
+                <Fact label="Client" value={personBrief.client} />
+                <Fact label="Mentor" value={personBrief.mentor} />
+                <Fact label="Reports to" value={personBrief.reportsTo} />
+              </dl>
+            </div>
           ) : (
             <p className="type-secondary mt-6">No one is in this view.</p>
           ))}
@@ -193,9 +269,28 @@ export default function ReportView() {
                     {block.shortestBilling === null
                       ? '—'
                       : `${block.shortestBilling} mo`}
-                    {block.spof ? ' · Single point of failure' : ''}
+                    {block.spofNote ? ` · ${block.spofNote}` : ''}
                   </p>
-                  <AttentionLines people={block.attention} />
+                  {block.lines.length > 0 && (
+                    <ul className="mt-3">
+                      {block.lines.map((item) => (
+                        <li key={item.id} className="border-b border-hairline py-3">
+                          {item.personId ? (
+                            <button
+                              type="button"
+                              onClick={() => openPerson(item.personId)}
+                              className="hit text-left"
+                            >
+                              {item.text}
+                            </button>
+                          ) : (
+                            item.text
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <AttentionLines people={block.attention} onOpen={openPerson} />
                 </section>
               ))}
             </div>
@@ -207,6 +302,7 @@ export default function ReportView() {
               Ready {teamBrief.ready} · Watch {teamBrief.watch} · At risk{' '}
               {teamBrief.atRisk}
             </p>
+            <Worklist groups={teamBrief.worklist} onOpen={openPerson} />
             <section>
               <h3 className="type-title">Exceptions</h3>
               {teamBrief.attention.length === 0 ? (
@@ -215,7 +311,7 @@ export default function ReportView() {
                 teamBrief.attention.map((group) => (
                   <div key={group.client} className="mt-6">
                     <h4 className="font-semibold">{group.client}</h4>
-                    <AttentionLines people={group.people} />
+                    <AttentionLines people={group.people} onOpen={openPerson} />
                   </div>
                 ))
               )}
@@ -231,12 +327,16 @@ export default function ReportView() {
                       key={row.name}
                       className="flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline py-3"
                     >
-                      <span className="font-medium">
+                      <button
+                        type="button"
+                        onClick={() => openPerson(row.id)}
+                        className="hit text-left font-medium"
+                      >
                         {row.name}
                         <span className="ml-3 font-normal type-secondary">
                           {row.role} · {row.reportCount} reports
                         </span>
-                      </span>
+                      </button>
                       <span className="font-semibold">{row.score}</span>
                     </li>
                   ))}
@@ -250,19 +350,43 @@ export default function ReportView() {
           (mentorBriefs.length === 0 ? (
             <p className="type-secondary mt-6">No mentors in this view.</p>
           ) : (
-            <ul className="mt-6">
+            <div className="mt-6 space-y-6">
               {mentorBriefs.map((row) => (
-                <li
-                  key={row.mentor}
-                  className="flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline py-3"
-                >
-                  <span className="font-medium">{row.mentor}</span>
-                  <span className="type-secondary">
+                <section key={row.mentor}>
+                  <h3 className="type-title">{row.mentor}</h3>
+                  <p className="type-secondary mt-3">
                     Ready {row.ready} · Watch {row.watch} · At risk {row.atRisk}
-                  </span>
-                </li>
+                  </p>
+                  {row.overload ? <p className="mt-3">{row.overload}</p> : null}
+                  {row.mentorDeparted && row.moved.length > 0 ? (
+                    <p className="mt-3">
+                      Moved after departure: {row.moved.join(', ')}.
+                    </p>
+                  ) : null}
+                  <ul className="mt-3">
+                    {row.mentees.map((mentee) => (
+                      <li
+                        key={mentee.id || mentee.name}
+                        className="flex flex-wrap items-baseline gap-3 border-b border-hairline py-3"
+                      >
+                        {mentee.id ? (
+                          <button
+                            type="button"
+                            onClick={() => openPerson(mentee.id)}
+                            className="hit text-left font-medium text-tessolve-navy"
+                          >
+                            {mentee.name}
+                          </button>
+                        ) : (
+                          <span className="font-medium">{mentee.name}</span>
+                        )}
+                        <span className="type-secondary">{mentee.status}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           ))}
       </section>
     </div>

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
   Cell,
@@ -22,6 +23,7 @@ import {
   buildRoleFunnel,
 } from '../../utils/analyticsEngine'
 import { buildHierarchyIssues, buildTeamBalance } from '../../utils/teamShape'
+import { exceptionAction } from '../../utils/reportBrief'
 
 const READY = '#16A34A'
 const WATCH = '#D97706'
@@ -149,7 +151,7 @@ function MixBars({ data, empty, label, onName, plotClass = '' }) {
   )
 }
 
-function AttentionPanel({ groups, onClient, onAtRisk }) {
+function AttentionPanel({ groups, onClient, onAtRisk, onPerson }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <h2 className="type-title">Exceptions</h2>
@@ -175,7 +177,13 @@ function AttentionPanel({ groups, onClient, onAtRisk }) {
                     key={person.id}
                     className="flex flex-wrap items-baseline gap-3 border-b border-hairline py-3"
                   >
-                    <p className="font-medium text-ink">{person.name}</p>
+                    <button
+                      type="button"
+                      onClick={() => onPerson(person.id)}
+                      className="hit text-left font-medium text-tessolve-navy"
+                    >
+                      {person.name}
+                    </button>
                     <p className="type-secondary">{person.billingMonths} mo</p>
                     <div className="flex flex-wrap gap-3">
                       {person.reasons.map((reason) => {
@@ -200,6 +208,9 @@ function AttentionPanel({ groups, onClient, onAtRisk }) {
                         )
                       })}
                     </div>
+                    {person.action ? (
+                      <p className="type-secondary basis-full">{person.action}</p>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -214,9 +225,11 @@ function AttentionPanel({ groups, onClient, onAtRisk }) {
 export default function DashboardView() {
   const {
     filteredEmployees,
+    employees,
     clientRisk,
     setFilters,
   } = useApp()
+  const navigate = useNavigate()
 
   const active = useMemo(
     () => filteredEmployees.filter((e) => !e.isDeparted),
@@ -237,10 +250,20 @@ export default function DashboardView() {
         })),
     [clientRisk.clients],
   )
-  const attention = useMemo(
-    () => buildAttentionList(active, clientRisk.spofAlerts),
-    [active, clientRisk.spofAlerts],
-  )
+  const attention = useMemo(() => {
+    const built = buildAttentionList(active, clientRisk.spofAlerts)
+    const byId = new Map(filteredEmployees.map((person) => [person.id, person]))
+    return {
+      ...built,
+      groups: built.groups.map((group) => ({
+        ...group,
+        people: group.people.map((person) => ({
+          ...person,
+          action: exceptionAction(byId.get(person.id), filteredEmployees, employees),
+        })),
+      })),
+    }
+  }, [active, clientRisk.spofAlerts, filteredEmployees, employees])
   const balance = useMemo(() => buildTeamBalance(active), [active])
   const issues = useMemo(
     () => buildHierarchyIssues(filteredEmployees),
@@ -429,6 +452,9 @@ export default function DashboardView() {
           groups={attention.groups}
           onClient={toggleClient}
           onAtRisk={(client) => toggleClientStatus(client, 'RED')}
+          onPerson={(id) =>
+            navigate('/report', { state: { level: 'person', personId: id } })
+          }
         />
       </section>
     </div>
